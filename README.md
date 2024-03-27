@@ -9,9 +9,8 @@ Suivez ces étapes pour configurer l'environnement de développement et installe
 ### Prérequis
 
 - Assurez-vous d'avoir installé [sdl2_la_bonne_version] sur votre système.
-- Assurez-vous d'avoir [C] d'installé sur votre système.
+- Assurez-vous d'avoir [C_bonne_version] d'installé sur votre système.
 
-[Utilisation DOCKER ?]
 
 ### Installation des dépendances
 
@@ -26,7 +25,7 @@ pip install -r requirements.txt
 Pour lancer l'application, exécutez la commande suivante :
 
 ```bash
-flask run
+[COMMANDE A RENSEIGNER]
 ```
 
 ## Contribution
@@ -37,7 +36,7 @@ Pour créer votre branch, exécutez la commande suivante :
 git branch <nom-de-votre-branch>
 ```
 Utilisez un nom de branch qui décrit ce que vous faites précédé du type de branch (feature, fix, etc.).
-Exemple : feature/ajout-de-la-page-daccueil
+Exemple : feature/collisions
 
 Au moment de faire le premier push de votre branch, utilisez la commande suivante :
 
