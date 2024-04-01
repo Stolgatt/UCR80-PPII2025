@@ -3,77 +3,96 @@
 #include <SDL2/SDL.h>
 #include <math.h>
 
+#include "engine_common.h"
 #include "graphical_engine.h"
-
 
 #define TX 640
 #define TY 480
 
-
-
-void DrawCircle(SDL_Renderer* renderer, int32_t centreX, int32_t centreY, int32_t radius)
-{
-const int32_t diameter = (radius * 2);
-
-int32_t x = (radius - 1);
-int32_t y = 0;
-int32_t tx = 1;
-int32_t ty = 1;
-int32_t error = (tx - diameter);
-
-while (x >= y)
-{
-// Each of the following renders an octant of the circle
-SDL_RenderDrawPoint(renderer, centreX + x, centreY - y);
-SDL_RenderDrawPoint(renderer, centreX + x, centreY + y);
-SDL_RenderDrawPoint(renderer, centreX - x, centreY - y);
-SDL_RenderDrawPoint(renderer, centreX - x, centreY + y);
-SDL_RenderDrawPoint(renderer, centreX + y, centreY - x);
-SDL_RenderDrawPoint(renderer, centreX + y, centreY + x);
-SDL_RenderDrawPoint(renderer, centreX - y, centreY - x);
-SDL_RenderDrawPoint(renderer, centreX - y, centreY + x);
-
-  if (error <= 0)
-  {
-  	++y;
-  	error += ty;
-  	ty += 2;
-  }
-
-  if (error > 0)
-  {
-  	--x;
-  	tx += 2;
-  	error += (tx - diameter);
-  }
-
-}
+void generer_ligne(VECTEUR3D* tab, const VECTEUR3D* position, const VECTEUR3D* direction, int N) {
+	for (int i=0; i<N; ++i) {
+		tab[i].x = position->x + i*direction->x;
+		tab[i].y = position->y + i*direction->y;
+		tab[i].z = position->z + i*direction->z;
+	}
 }
 
+void generer_parallelogramme(VECTEUR3D* tab, const VECTEUR3D* position, const VECTEUR3D* direction, int N, const VECTEUR3D* direction2, int M) {
+	VECTEUR3D actuel;
+	for (int i=0; i<N; ++i) {
+		actuel.x = position->x + i*direction->x;
+		actuel.y = position->y + i*direction->y;
+		actuel.z = position->z + i*direction->z;
+		generer_ligne(tab+M*i, &actuel, direction2, M);
+	}
+}
 
 int main() {
 
 	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER);
 	SDL_Window* window = SDL_CreateWindow("graphical engine test", SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, TX,TY, SDL_WINDOW_SHOWN);
-	// SDL_Surface* screen = SDL_GetWindowSurface(window);
-	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-	SDL_SetRenderDrawBlendMode(renderer,SDL_BLENDMODE_NONE);
+	SDL_Surface* screen = SDL_GetWindowSurface(window);
 
-	const int N_disques = 3;
-	VERTEX2D tab_centres[] = {{150,150},{10,10},{150,100}};
-	float tab_rayons[] = {100,2,50};
+	// setup de la caméra + buffers
+	CAMERA CAM;
+	CALCULER_FOV(&CAM, TX,TY, 2*M_PI/3, 0.5);
+	CAM.position.x = 0.0;
+	CAM.position.y = -2.0;
+	CAM.position.z = 0.0;
+	CAM.rotation.w = 1.0; CAM.rotation.x = CAM.rotation.y = CAM.rotation.z = 0.0;
+	float* zbuffer = calloc(TX*TY+1,sizeof(float));
+	unsigned int* buffer = calloc(TX*TY+1,sizeof(unsigned int));
 
-	const int N_segments = 2;
-	VERTEX2D tab_pos_seg[] = { {30,35}, {300,300} };
-	SEGMENT2D tab_seg[] = { {{cos(M_PI/4),sin(M_PI/4)},60}, {{1,0},10} };
+	// setup de l'objet et de l'os
+	OS3D pos_rot_objet;
+	pos_rot_objet.nombre_enfants = 0;
+	pos_rot_objet.enfants = NULL;
+	OBJET3D objet;
+	objet.os = &pos_rot_objet;
+	objet.next = NULL;
 
-	float RAYON = 20;
-	VERTEX2D POSITION = {50,50};
+	// génération des points de l'objet
+	VECTEUR3D position = {-0.5,0.0,0.5};
+	VECTEUR3D direction = {0.01,0.0,0.0};
+	VECTEUR3D direction2 = {0.0,0.0,-0.01};
+	const int N = fabs(1./direction.x);
+	const int M = fabs(1./direction2.z);
+	objet.tableau_points = calloc(N*M,sizeof(VECTEUR3D));
+	generer_parallelogramme(objet.tableau_points, &position, &direction, N, &direction2, M);
+	objet.N_POINTS = N * M;
+	// génération de la couleur des pts de l'objet
+	srand(SDL_GetTicks());
+	objet.tableau_couleurs = calloc(N*M, sizeof(unsigned int));
+	for (int i=0; i<objet.N_POINTS; ++i) {
+		int tmp = (i<objet.N_POINTS/2) ? 128 : 255;
+		objet.tableau_couleurs[i] = (tmp<<16)+(tmp<<8)+(255-tmp);
+	}
+
+	// placement de l'objet (via os)
+	pos_rot_objet.echelle = 1.0;
+	pos_rot_objet.q.w = 1.0; pos_rot_objet.q.x = pos_rot_objet.q.y = pos_rot_objet.q.z = 0.0;
+	pos_rot_objet.position.x = 0.0;
+	pos_rot_objet.position.y = 0.0;
+	pos_rot_objet.position.z = 0.0;
+	QUATERNION chgmt_rot;
+	VECTEUR3D v_rot;
+	v_rot.x = 0.0;
+	v_rot.y = 0.0;
+	v_rot.z = 1.0;
+	CALCUL_QUATERNION(0.1, &v_rot, &chgmt_rot);
+	CALCUL_BASE_OS3D_M(&pos_rot_objet);
+	CALCUL_SQUELETTE_3D(&pos_rot_objet);
+
+	// calcul de l'enveloppe convexe de l'objet
+	CALCULER_BOUNDING_BOX(&objet);
 
 	enum {UP=0,DOWN=1,LEFT=2,RIGHT=3};
 	int INPUT[4] = {0};
 	SDL_Event EVENT;
 	int loop = 1;
+	int screen_pitch;
+	Uint8* screen_pixels;
+	float tmp = 0.0, tmp2 = 0.0;
 	while (loop) {
 
 		while( SDL_PollEvent(&EVENT) != 0 ) {
@@ -118,50 +137,43 @@ int main() {
 			}
 		}
 
-        if (INPUT[UP] && !INPUT[DOWN]) {
-        	POSITION.y -= 1;
-        }
-        else if (INPUT[DOWN] && !INPUT[UP]) {
-        	POSITION.y += 1;
-        }
-        if (INPUT[LEFT] && !INPUT[RIGHT]) {
-        	POSITION.x -= 1;
-        }
-        else if (INPUT[RIGHT] && !INPUT[LEFT]) {
-        	POSITION.x += 1;
-        }
+		if (INPUT[UP])
+			pos_rot_objet.position.y += 0.05;
+		if (INPUT[DOWN])
+			pos_rot_objet.position.y -= 0.05;
+		if (INPUT[LEFT])
+			pos_rot_objet.position.x -= 0.05;
+		if (INPUT[RIGHT])
+			pos_rot_objet.position.x += 0.05;
+		v_rot.x = 1.0;
+		v_rot.y = 0.0;
+		v_rot.z = 0.0;
+		CALCUL_QUATERNION(tmp = tmp+0.01, &v_rot, &(pos_rot_objet.q));
+		//v_rot.x = 0.0;
+		//v_rot.y = 0.0;
+		//v_rot.z = 1.0;
+		//CALCUL_QUATERNION(tmp2 = tmp2+0.1, &v_rot, &chgmt_rot);
+		//MULT_QUATERNIONS_EN_PLACE_DROITE(&chgmt_rot, &(pos_rot_objet.q));
+		//NORMALISER_QUATERNION(&(pos_rot_objet.q),&(pos_rot_objet.q));
 
-		SDL_SetRenderDrawColor(renderer,0,0,0,255);
-		SDL_RenderClear(renderer);
-		for (int i=0; i<N_disques; ++i) {
-			if (INTERSECTION_DISQUES(POSITION.x,POSITION.y,RAYON, tab_centres[i].x,tab_centres[i].y,tab_rayons[i])) {
-				SDL_SetRenderDrawColor(renderer,255,255,255,255);
-				DrawCircle(renderer, tab_centres[i].x, tab_centres[i].y, tab_rayons[i]);
-			}
-			else {
-				SDL_SetRenderDrawColor(renderer,255,0,0,255);
-				DrawCircle(renderer, tab_centres[i].x, tab_centres[i].y, tab_rayons[i]);
+		CALCUL_BASE_OS3D_M(&pos_rot_objet);
+		CALCUL_SQUELETTE_3D(&pos_rot_objet);
+		AFFICHAGE_CAMERA(&CAM, &objet, zbuffer, buffer);
+		SDL_LockSurface(screen);
+		screen_pitch = screen->pitch;
+		screen_pixels = (Uint8 *)screen->pixels;
+		for (int j=0;j<TY;++j) {
+			for (int i=0;i<TX;++i) {
+				*((Uint32 *) (screen_pixels + j*screen_pitch + (i<<2))) = buffer[(TY-j-1)*TX + i];
+				zbuffer[(TY-j-1)*TX + i] = FLT_MAX;
+				buffer[(TY-j-1)*TX + i] = 0;
 			}
 		}
-		for (int i=0; i<N_segments; ++i) {
-			if (INTERSECTION_SEGMENT2D(tab_seg+i, tab_pos_seg+i, &RAYON, &POSITION)) {
-				SDL_SetRenderDrawColor(renderer,255,255,255,255);
-				SDL_RenderDrawLine(renderer,tab_pos_seg[i].x,tab_pos_seg[i].y,tab_seg[i].direction.x*tab_seg[i].longueur+tab_pos_seg[i].x,tab_seg[i].direction.y*tab_seg[i].longueur+tab_pos_seg[i].y);
-			}
-			else {
-				SDL_SetRenderDrawColor(renderer,0,255,0,255);
-				SDL_RenderDrawLine(renderer,tab_pos_seg[i].x,tab_pos_seg[i].y,tab_seg[i].direction.x*tab_seg[i].longueur+tab_pos_seg[i].x,tab_seg[i].direction.y*tab_seg[i].longueur+tab_pos_seg[i].y);
-			}
-		}
-
-		SDL_SetRenderDrawColor(renderer,255,255,255,255);
-		DrawCircle(renderer, POSITION.x, POSITION.y, RAYON);
-
-		SDL_RenderPresent(renderer);
+		SDL_UnlockSurface(screen);
+		SDL_UpdateWindowSurface(window);
 		SDL_Delay(16);
 	}
 
-	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 	exit(0);
