@@ -2,38 +2,89 @@
 #define GRAPHICAL_ENGINE_H
 
 #include "engine_common.h"
-#include <stddef.h>
-#include <float.h>
+
+#include <SDL2/SDL.h>
+
+struct SPRITE {
+
+	const SDL_Texture* texture;
+	float rotation;
+	float echelle;
+	VECTEUR3D position;
+
+};
+typedef struct SPRITE SPRITE;
+
+
+struct D_SPRITE {
+
+	SPRITE* sprite;
+	float D;
+
+};
+typedef struct D_SPRITE D_SPRITE;
+
+
+struct TABLEAU_SPRITES {
+
+	unsigned int N;
+	SPRITE* sprites;
+
+	struct TABLEAU_SPRITES* suivant;
+
+};
+typedef struct TABLEAU_SPRITES TABLEAU_SPRITES;
+
+
+struct PLAN_HORIZONTAL {
+
+	const SDL_Texture* texture;
+	float rotation;
+	float echelle;
+	VECTEUR3D position;
+
+	TABLEAU_SPRITES* sprites_au_dessus;
+
+	struct PLAN_HORIZONTAL* au_dessus;
+	struct PLAN_HORIZONTAL* en_dessous;
+
+};
+typedef struct PLAN_HORIZONTAL PLAN_HORIZONTAL;
+
+struct SCENE {
+
+	TABLEAU_SPRITES* sprites_tout_en_bas;
+	PLAN_HORIZONTAL* tout_en_bas;
+	PLAN_HORIZONTAL* tout_en_haut;
+
+};
+typedef struct SCENE SCENE;
+
 
 struct CAMERA {
-	int largeur_ecran;
-	int hauteur_ecran;
 
-	float limite_gauche_fov;
-	float limite_droite_fov;
-	float limite_haute_fov;
-	float limite_basse_fov;
-	float distance_cam_ecran;
+	SDL_Renderer* renderer;
+	SDL_Texture* tmp_text;
+	SDL_Texture* tmp_ecran;
+	SDL_Rect ecran_final;
+
+	D_SPRITE* tableau_d;
+	unsigned int N_MAX;
 
 	VECTEUR3D position;
-	QUATERNION rotation;
+	float longitude;
+	float latitude;
+	float roulis;
+
+	float echelle_ecran;
+	float distance_ecran;
+	float offset_horizontal;
+	float offset_vertical;
+
 };
 typedef struct CAMERA CAMERA;
 
-struct OBJET3D {
-	OS3D* os;
-	VECTEUR3D enveloppe_convexe[8]; // pas nécessairement un cube, juste une enveloppe convexe (un cube potentiellement déformé quoi)
-	int N_POINTS;
-	VECTEUR3D* tableau_points;
-	// temporaire
-	unsigned int* tableau_couleurs;
 
-	struct OBJET3D* next;
-};
-typedef struct OBJET3D OBJET3D;
-
-void CALCULER_BOUNDING_BOX(OBJET3D* objet);
-void CALCULER_FOV(CAMERA* cam, int largeur_ecran, int hauteur_ecran, float FOV_horizontal, float distance_cam_ecran);
-void AFFICHAGE_CAMERA(const CAMERA* cam, const OBJET3D* objets, float* zbuffer, unsigned int* buffer);
+void AFFICHAGE_CAMERA(const CAMERA* cam, const SCENE* scene);
 
 #endif
