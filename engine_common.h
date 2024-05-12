@@ -5,6 +5,8 @@
 // jsp pk mais gcc trouve pas la déclaration de sincosf dans <math.h> donc pour éviter les warnings chiants je fais ça
 void sincosf(float, float*, float*);
 
+#define RAD2DEG(angle) ((angle)*180./M_PI)
+
 struct VECTEUR2D {
 	float x;
 	float y;

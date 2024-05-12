@@ -15,45 +15,43 @@ int main() {
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
 	SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255 );
 
-	SDL_Surface* bmp_test = SDL_LoadBMP("sample.bmp");
+	SDL_Surface* bmp_test = SDL_LoadBMP("sample2.bmp");
 	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, bmp_test);
 	SDL_FreeSurface(bmp_test);
-	SDL_Rect src;
-	src.x = 0;
-	src.y = 0;
-	src.w = 1920;
-	src.h = 1280;
-	SDL_Rect dst;
-	dst.x = TX/2 - 25;
-	dst.y = TY/2 - 25;
-	dst.w = 50;
-	dst.h = 50;
-	const double angle = 90;
-	SDL_Point center;
-	center.x = 100;
-	center.y = 100;
 
-	/*CAMERA cam;
+	CAMERA cam;
 	cam.N_MAX = 10000;
-	cam.tableau_z = calloc(10000,sizeof(Z_SPRITE));
-
+	cam.tableau_d = calloc(10000,sizeof(D_SPRITE));
 	cam.position.x = 0.;
 	cam.position.y = 0.;
-	cam.position.z = 0.;
+	cam.position.z = -1000;
 	cam.longitude = 0.;
 	cam.latitude = 0.;
 	cam.roulis = 0.;
-	cam.ecran_final.x = 0;
-	cam.ecran_final.y = 0;
-	cam.ecran_final.w = TX;
-	cam.ecran_final.h = TY;
+	cam.renderer = renderer;
+	cam.tmp_text = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_TARGET,16000,16000);
+	cam.tmp_cible = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_TARGET,TX,TX);
+	cam.cible = NULL;
+	cam.dimension_cible.x = 0; cam.dimension_cible.y = 0;
+	cam.dimension_cible.w = TX; cam.dimension_cible.h = TY;
+	cam.echelle_ecran = 0.05;
 	cam.distance_ecran = 50.;
-	cam.min_largeur = -25.;
-	cam.max_largeur = +25.;
-	cam.min_hauteur = ;
-	cam.
+	cam.offset_horizontal = cam.offset_vertical = 0.;
 
-	SCENE scene;*/
+	PLAN_HORIZONTAL plan;
+	plan.texture = texture;
+	plan.rotation = 0.;
+	plan.echelle = 1.;
+	plan.position.x = plan.position.z = 0.;
+	plan.position.y = 3000;
+	plan.au_dessus = plan.en_dessous = plan.sprites_au_dessus = NULL;
+	plan.source.x = plan.source.y = 0;
+	plan.source.w = 3000; // 1920;
+	plan.source.h = 2172; // 1280;
+
+	SCENE scene;
+	scene.sprites_tout_en_bas = NULL;
+	scene.tout_en_bas = scene.tout_en_haut = &plan;
 
 	enum {UP=0,DOWN=1,LEFT=2,RIGHT=3};
 	int INPUT[4] = {0};
@@ -105,10 +103,16 @@ int main() {
 			}
 		}
 
+		if (INPUT[UP]) cam.latitude += 0.05;
+		if (INPUT[DOWN]) cam.latitude -= 0.05;
+		if (INPUT[LEFT]) cam.longitude += 0.05;
+		if (INPUT[RIGHT]) cam.longitude -= 0.05;
+		cam.latitude = cam.latitude > M_PI/2 ? M_PI/2 : cam.latitude;
+		cam.latitude = cam.latitude < -M_PI/2 ? -M_PI/2 : cam.latitude;
+
+		// printf("latitude %f\n",cam.latitude);
 		SDL_RenderClear(renderer);
-		//AFFICHAGE_CAMERA(&cam, &scene);
-		SDL_RenderCopyEx(renderer,texture,&src,&dst,0,NULL,SDL_FLIP_NONE);
-		SDL_RenderCopyEx(renderer,texture,&src,&dst,angle,&center,SDL_FLIP_NONE);
+		AFFICHAGE_CAMERA(&cam, &scene);
 		SDL_RenderPresent(renderer);
 
 		SDL_Delay(16);
@@ -122,6 +126,8 @@ int main() {
 		}
 	}
 
+	SDL_DestroyTexture(cam.tmp_text);
+	SDL_DestroyTexture(cam.tmp_cible);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();

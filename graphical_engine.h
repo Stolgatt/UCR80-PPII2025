@@ -5,11 +5,14 @@
 
 #include <SDL2/SDL.h>
 
+#include <stdio.h>
+
 struct SPRITE {
 
 	const SDL_Texture* texture;
 	float rotation;
 	float echelle;
+	SDL_Rect source;
 	VECTEUR3D position;
 
 };
@@ -40,6 +43,7 @@ struct PLAN_HORIZONTAL {
 
 	const SDL_Texture* texture;
 	float rotation;
+	SDL_Rect source;
 	float echelle;
 	VECTEUR3D position;
 
@@ -65,8 +69,9 @@ struct CAMERA {
 
 	SDL_Renderer* renderer;
 	SDL_Texture* tmp_text;
-	SDL_Texture* tmp_ecran;
-	SDL_Rect ecran_final;
+	SDL_Texture* tmp_cible;
+	SDL_Rect dimension_cible;
+	SDL_Texture* cible;
 
 	D_SPRITE* tableau_d;
 	unsigned int N_MAX;
@@ -84,6 +89,7 @@ struct CAMERA {
 };
 typedef struct CAMERA CAMERA;
 
+#define PREPARATION_RENDERER_POUR_RENDU(renderer,bg_R,bg_G,bg_B,bg_A) {SDL_SetRenderDrawColor(renderer,bg_R,bg_G,bg_B,bg_A); } // à compléter
 
 void AFFICHAGE_CAMERA(const CAMERA* cam, const SCENE* scene);
 
