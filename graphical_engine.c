@@ -1,37 +1,37 @@
 #include "graphical_engine.h"
 
 struct PRECALCULS {
-	VECTEUR3D i;
+	VECTEUR3D i; // vecteur unitaire de la base de la caméra
 	VECTEUR3D j;
 	VECTEUR3D k;
-	VECTEUR3D cam_pos;
+	VECTEUR3D cam_pos; // position de la caméra
 
-	float min_l;
+	float min_l; // info nécessaires au test de visibilité
 	float max_l;
 	float min_h;
 	float max_h;
 };
 typedef struct PRECALCULS PRECALCULS;
 
-void AFFICHAGE_SPRITES(const TABLEAU_SPRITES* sprites, const CAMERA* cam, const PRECALCULS* precalc) {
+void AFFICHAGE_SPRITES(const TABLEAU_SPRITES* sprites, const CAMERA* cam, const PRECALCULS* precalc) { // affiche les sprites de la liste sprites sur la cible cam->tmp_cible
 	unsigned int n = 0;
 
 	// projection de tous les sprites
-	while (sprites != NULL) {
-		for (unsigned int i=0; i<sprites->N; ++i) {
+	while (sprites != NULL) { // parcours de tous les sprites
+		for (unsigned int i=0; i<sprites->N; ++i) { 
 			VECTEUR3D pos;
 			// calcul de la position du sprite dans l'espace caméra
-			pos = sprites->sprites[i].position;
-			APPLIQUER_EN_PLACE_BASE_INVERSE_3D(&pos,&precalc->i,&precalc->j,&precalc->k);
+			pos = sprites->sprites[i].position; // position du sprite dans le repère monde
+			APPLIQUER_EN_PLACE_BASE_INVERSE_3D(&pos,&precalc->i,&precalc->j,&precalc->k); // position du sprite dans le repère caméra
 			pos.x -= precalc->cam_pos.x;
 			pos.y -= precalc->cam_pos.y;
 			pos.z -= precalc->cam_pos.z;
 			// test de visibilité 
-			if (pos.y >= cam->distance_ecran
+			if (pos.y >= cam->distance_ecran 
 				&& (pos.x + sprites->sprites[i].echelle*sprites->sprites[i].source.w/2)*cam->distance_ecran - pos.y*precalc->min_l >= 0
 				&& pos.y*precalc->max_l - (pos.x - sprites->sprites[i].echelle*sprites->sprites[i].source.w/2)*cam->distance_ecran >= 0
 				&& (pos.z + sprites->sprites[i].echelle*sprites->sprites[i].source.h/2)*cam->distance_ecran - pos.y*precalc->min_h >= 0
-				&& pos.y*precalc->max_h - (pos.z - sprites->sprites[i].echelle*sprites->sprites[i].source.h/2)*cam->distance_ecran >= 0)
+				&& pos.y*precalc->max_h - (pos.z - sprites->sprites[i].echelle*sprites->sprites[i].source.h/2)*cam->distance_ecran >= 0) 
 			{
 				cam->tableau_z[n].index = n;
 				cam->tableau_z[n].Z = pos.z;
@@ -205,7 +205,7 @@ void AFFICHAGE_CAMERA(const CAMERA* cam, const SCENE* scene) {
 	}
 
 	ptr = scene->tout_en_bas;
-	TABLEAU_SPRITES* prev_sprites = scene->sprites_tout_en_bas;
+	TABLEAU_SPRITES* prev_sprites = scene->sprites_tout_en_bas; // pour les sprites qui sont en dessous de tous les plans
 	if (bas_ecran_z < 0) {
 		while ((ptr != NULL) && (ptr->position.z < cam->position.z)) {
 			AFFICHAGE_SPRITES(prev_sprites, cam, &precalc);
@@ -277,9 +277,9 @@ void AFFICHAGE_CAMERA(const CAMERA* cam, const SCENE* scene) {
 			ptr = ptr->au_dessus;
 		}
 	}
-	AFFICHAGE_SPRITES(prev_sprites, cam, &precalc);
+	AFFICHAGE_SPRITES(prev_sprites, cam, &precalc); 
 
-	while ((ptr != NULL) && (ptr->position.z == cam->position.z)) {
+	while ((ptr != NULL) && (ptr->position.z == cam->position.z)) { // on affiche les plans qui sont à la même hauteur que la caméra
 		AFFICHAGE_SPRITES(ptr->sprites_au_dessus, cam, &precalc);
 		ptr = ptr->au_dessus;
 	}

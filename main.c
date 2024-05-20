@@ -10,16 +10,16 @@
 
 int main() {
 
-	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER);
-	SDL_Window* window = SDL_CreateWindow("graphical engine test", SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, TX,TY, SDL_WINDOW_SHOWN);
-	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
-	SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255 );
+	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER); // Initialisation de la SDL
+	SDL_Window* window = SDL_CreateWindow("graphical engine test", SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, TX,TY, SDL_WINDOW_SHOWN); // Création de la fenêtre
+	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE); // Création du renderer
+	SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255 ); // Couleur de fond noire
 
-	SDL_Surface* bmp_test = SDL_LoadBMP("map.bmp");
-	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, bmp_test);
-	SDL_FreeSurface(bmp_test);
+	SDL_Surface* bmp_test = SDL_LoadBMP("map.bmp"); // charge une image BMP depuis le fichier "map.bmp"
+	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, bmp_test); // crée une texture à partir de la surface BMP chargée.
+	SDL_FreeSurface(bmp_test); // libère la mémoire allouée pour la surface BMP
 
-	CAMERA cam;
+	CAMERA cam; // Initialise une structure CAMERA avec divers paramètres, y compris la position, l'orientation, et des textures temporaires.
 	cam.N_MAX = 10000;
 	cam.tableau_z = calloc(cam.N_MAX,sizeof(Z_SPRITE));
 	cam.tableau_p = calloc(cam.N_MAX,sizeof(SPRITE_PROJETE));
@@ -39,7 +39,7 @@ int main() {
 	cam.distance_ecran = 10.;
 	cam.offset_horizontal = cam.offset_vertical = 0.;
 
-	PLAN_HORIZONTAL plan;
+	PLAN_HORIZONTAL plan; // Initialise un plan horizontal avec une texture, une position, une rotation, une échelle, et des pointeurs vers les sprites au-dessus et en-dessous.
 	plan.texture = texture;
 	plan.rotation = 0.;
 	plan.echelle = 1.;
@@ -50,23 +50,23 @@ int main() {
 	plan.source.w = 1600;
 	plan.source.h = 3000;
 
-	SCENE scene;
+	SCENE scene; // Initialise une scène avec un plan au-dessus et un plan en-dessous.	
 	scene.sprites_tout_en_bas = NULL;
 	scene.tout_en_bas = scene.tout_en_haut = &plan;
 
-	enum {UP=0,DOWN=1,LEFT=2,RIGHT=3,Z,Q,S,D,A,E,W,X};
-	int INPUT[12] = {0};
+	enum {UP=0,DOWN=1,LEFT=2,RIGHT=3,Z,Q,S,D,A,E,W,X}; // Définit une énumération pour les touches de contrôle.
+	int INPUT[12] = {0}; // Crée un tableau INPUT pour suivre l'état des touches de contrôle.
 	SDL_Event EVENT;
 	int loop = 1;
 	int fps = 0;
-	long long temps_fps = SDL_GetTicks();
-	while (loop) {
+	long long temps_fps = SDL_GetTicks(); // Initialise un compteur de FPS.
+	while (loop) { // Boucle principale du programme.
 
-		while( SDL_PollEvent(&EVENT) != 0 ) {
+		while( SDL_PollEvent(&EVENT) != 0 ) { // Gestion des événements.
 	        if (EVENT.type == SDL_QUIT) {
                 loop = 0;
             }
-            else if (EVENT.type == SDL_KEYDOWN) {
+            else if (EVENT.type == SDL_KEYDOWN) { // Gestion des touches de contrôle.
 				switch (EVENT.key.keysym.sym) {
 					case SDLK_UP:
 						INPUT[UP] = 1;
@@ -108,7 +108,7 @@ int main() {
 						break;
 				}
 			}
-			else if (EVENT.type == SDL_KEYUP) {
+			else if (EVENT.type == SDL_KEYUP) { 
 				switch (EVENT.key.keysym.sym) {
 					case SDLK_UP:
 						INPUT[UP] = 0;
@@ -152,7 +152,7 @@ int main() {
 			}
 		}
 
-		if (INPUT[UP]) cam.latitude += 0.05;
+		if (INPUT[UP]) cam.latitude += 0.05; // Gestion des déplacements de la caméra.
 		if (INPUT[DOWN]) cam.latitude -= 0.05;
 		if (INPUT[LEFT]) cam.longitude += 0.05;
 		if (INPUT[RIGHT]) cam.longitude -= 0.05;
@@ -167,25 +167,25 @@ int main() {
 		if (INPUT[E]) cam.position.z += 0.7;
 		if (INPUT[A]) cam.position.z -= 0.7;
 
-		SDL_RenderClear(renderer);
-		AFFICHAGE_CAMERA(&cam, &scene);
-		SDL_RenderPresent(renderer);
+		SDL_RenderClear(renderer); // Efface le rendu précédent.
+		AFFICHAGE_CAMERA(&cam, &scene); // Affiche la scène à l'écran.
+		SDL_RenderPresent(renderer); // Affiche le rendu à l'écran.
 
-		SDL_Delay(16);
-		if (SDL_GetTicks() - temps_fps >= 1000) {
+		SDL_Delay(16); // Limite la fréquence de rafraîchissement à 60 FPS.
+		if (SDL_GetTicks() - temps_fps >= 1000) { // Affiche les FPS toutes les secondes.
 			printf("FPS: %d\n",fps);
-			temps_fps = SDL_GetTicks();
+			temps_fps = SDL_GetTicks(); 
 			fps = 0;
 		}
 		else {
-			fps++;
+			fps++; 
 		}
 	}
 
-	SDL_DestroyTexture(cam.tmp_text);
-	SDL_DestroyTexture(cam.tmp_cible);
-	SDL_DestroyRenderer(renderer);
+	SDL_DestroyTexture(cam.tmp_text); // Libère la mémoire allouée pour les textures temporaires.
+	SDL_DestroyTexture(cam.tmp_cible); 
+	SDL_DestroyRenderer(renderer); 
 	SDL_DestroyWindow(window);
-	SDL_Quit();
-	exit(0);
+	SDL_Quit(); 
+	exit(0); 
 }
