@@ -82,7 +82,7 @@ int main() {
 	list_origine[0].x = x_lim_exte[exte_size-1];
 	list_origine[0].y = y_lim_exte[exte_size-1];
 				//pour l'extérieur
-	for (int i=1 ; i++ ; i<exte_size-1) {
+	for (int i=1 ; i<exte_size-1 ; i++) {
 		list_segment[i]=CREA_SEGMENT_2D(x_lim_exte[i],x_lim_exte[i+1],y_lim_exte[i],y_lim_exte[i+1]);
 		list_origine[i].x = x_lim_exte[i];
 		list_origine[i].y = y_lim_exte[i];
@@ -91,7 +91,7 @@ int main() {
 	list_segment[exte_size]=CREA_SEGMENT_2D(x_lim_ilot[ilot_size-1],x_lim_ilot[0],y_lim_ilot[ilot_size-1],y_lim_ilot[0]);
 	list_origine[exte_size].x = x_lim_ilot[ilot_size-1];
 	list_origine[exte_size].y = y_lim_ilot[ilot_size-1];
-	for (int i=1 ; i++ ; i<ilot_size-1) {
+	for (int i=1 ; i<ilot_size-1 ; i++) {
 		list_segment[i+exte_size]=CREA_SEGMENT_2D(x_lim_ilot[i],x_lim_ilot[i+1],y_lim_ilot[i],y_lim_ilot[i+1]);
 		list_origine[i+exte_size].x = x_lim_ilot[i];
 		list_origine[i+exte_size].y = y_lim_ilot[i];
@@ -100,7 +100,7 @@ int main() {
 	list_segment[exte_size+ilot_size]=CREA_SEGMENT_2D(x_lim_inte[inte_size-1],x_lim_inte[0],y_lim_inte[inte_size-1],y_lim_inte[0]);
 	list_origine[exte_size+ilot_size].x = x_lim_inte[inte_size-1];
 	list_origine[exte_size+ilot_size].y = y_lim_inte[inte_size-1];
-	for (int i=1 ; i++ ; i<inte_size-1) {
+	for (int i=1 ; i<inte_size-1 ; i++) {
 		list_segment[i+exte_size+ilot_size]=CREA_SEGMENT_2D(x_lim_inte[i],x_lim_inte[i+1],y_lim_inte[i],y_lim_inte[i+1]);
 		list_origine[i+exte_size+ilot_size].x = x_lim_inte[i];
 		list_origine[i+exte_size+ilot_size].y = y_lim_inte[i];
@@ -109,7 +109,7 @@ int main() {
 	list_segment[exte_size+ilot_size+inte_size]=CREA_SEGMENT_2D(x_lim_lac[lac_size-1],x_lim_lac[0],y_lim_lac[lac_size-1],y_lim_lac[0]);
 	list_origine[exte_size+ilot_size+inte_size].x = x_lim_lac[lac_size-1];
 	list_origine[exte_size+ilot_size+inte_size].y = y_lim_lac[lac_size-1];
-	for (int i=1 ; i++ ; i<lac_size-1) {
+	for (int i=1 ; i<lac_size-1 ; i++) {
 		list_segment[i+exte_size+ilot_size+inte_size]=CREA_SEGMENT_2D(x_lim_lac[i],x_lim_lac[i+1],y_lim_lac[i],y_lim_lac[i+1]);
 		list_origine[i+exte_size+ilot_size+inte_size].x = x_lim_lac[i];
 		list_origine[i+exte_size+ilot_size+inte_size].y = y_lim_lac[i];
