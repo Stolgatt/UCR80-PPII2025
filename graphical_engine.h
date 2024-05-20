@@ -9,8 +9,8 @@
 
 struct SPRITE {
 
-	const SDL_Texture* texture;
-	float rotation;
+	SDL_Texture* texture;
+	// float rotation; // pas sûr que ça sera utile...
 	float echelle;
 	SDL_Rect source;
 	VECTEUR3D position;
@@ -19,14 +19,21 @@ struct SPRITE {
 typedef struct SPRITE SPRITE;
 
 
-struct D_SPRITE {
+struct Z_SPRITE {
 
-	SPRITE* sprite;
-	float D;
+	unsigned int index;
+	float Z; // comme zizi
 
 };
-typedef struct D_SPRITE D_SPRITE;
+typedef struct Z_SPRITE Z_SPRITE;
 
+struct SPRITE_PROJETE {
+
+	SPRITE* sprite;
+	SDL_Rect dest;
+
+};
+typedef struct SPRITE_PROJETE SPRITE_PROJETE;
 
 struct TABLEAU_SPRITES {
 
@@ -41,7 +48,7 @@ typedef struct TABLEAU_SPRITES TABLEAU_SPRITES;
 
 struct PLAN_HORIZONTAL {
 
-	const SDL_Texture* texture;
+	SDL_Texture* texture;
 	float rotation;
 	SDL_Rect source;
 	float echelle;
@@ -73,8 +80,10 @@ struct CAMERA {
 	SDL_Rect dimension_cible;
 	SDL_Texture* cible;
 
-	D_SPRITE* tableau_d;
 	unsigned int N_MAX;
+	Z_SPRITE* tableau_z;
+	SPRITE_PROJETE* tableau_p;
+
 
 	VECTEUR3D position;
 	float longitude;
@@ -88,8 +97,6 @@ struct CAMERA {
 
 };
 typedef struct CAMERA CAMERA;
-
-#define PREPARATION_RENDERER_POUR_RENDU(renderer,bg_R,bg_G,bg_B,bg_A) {SDL_SetRenderDrawColor(renderer,bg_R,bg_G,bg_B,bg_A); } // à compléter
 
 void AFFICHAGE_CAMERA(const CAMERA* cam, const SCENE* scene);
 

@@ -1,9 +1,19 @@
 #ifndef ENGINE_COMMON
 #define ENGINE_COMMON
 
+//#define SINCOSF_SYMBOL_NOT_FOUND_pk_ça_fait_ça_je_comprends_pas_en_tout_cas_voici_un_fix_dégueulasse_mais_fonctionnel
+
 #include <math.h>
+
 // jsp pk mais gcc trouve pas la déclaration de sincosf dans <math.h> donc pour éviter les warnings chiants je fais ça
 void sincosf(float, float*, float*);
+// et au pire... :(
+#ifdef SINCOSF_SYMBOL_NOT_FOUND_pk_ça_fait_ça_je_comprends_pas_en_tout_cas_voici_un_fix_dégueulasse_mais_fonctionnel
+void inline sincosf(float angle,float* sin,float* cos) {
+	*sin = sinf(angle);
+	*cos = cosf(angle);
+}
+#endif
 
 #define RAD2DEG(angle) ((angle)*180./M_PI)
 
@@ -33,7 +43,7 @@ inline void APPLIQUER_EN_PLACE_BASE_2D(VECTEUR2D* vecteur, const VECTEUR2D* i,co
 
 #define APPLIQUER_BASE_INVERSE_2D_M(v_initial, v_resultant, i,j) { (v_resultant).x = PDT_SCALAIRE_2D_M(v_initial,i); (v_resultant).y = PDT_SCALAIRE_2D_M(v_initial,j); }
 #define APPLIQUER_EN_PLACE_BASE_INVERSE_2D_M(v, i,j, float_1) { (float_1) = PDT_SCALAIRE_2D_M(v,i); (v).y = PDT_SCALAIRE_2D_M(v,j); (v).x = (float_1); }
-inline void APPLIQUER_EN_PLACE_BASE_INVERSE_2D(VECTEUR2D* vecteur, VECTEUR2D* i,VECTEUR2D* j) {
+inline void APPLIQUER_EN_PLACE_BASE_INVERSE_2D(VECTEUR2D* vecteur, const VECTEUR2D* i, const VECTEUR2D* j) {
 	float tmp;
 	APPLIQUER_EN_PLACE_BASE_INVERSE_2D_M(*vecteur, *i,*j, tmp);
 }
@@ -174,14 +184,14 @@ inline void MULT_QUATERNIONS_EN_PLACE_DROITE(const QUATERNION* qg, QUATERNION* q
 
 #define APPLIQUER_BASE_3D_M(v_initial,v_resultant, i,j,k) { (v_resultant).x = (v_initial).x*(i).x + (v_initial).y*(j).x + (v_initial).z*(k).x; (v_resultant).y = (v_initial).x*(i).y + (v_initial).y*(j).y  + (v_initial).z*(k).y; (v_resultant).z = (v_initial).x*(i).z + (v_initial).y*(j).z  + (v_initial).z*(k).z; }
 #define APPLIQUER_EN_PLACE_BASE_3D_M(vecteur, i,j,k,float_1,float_2) { float_1 = (vecteur).x; float_2 = (vecteur).y; (vecteur).x = float_1*(i).x + float_2*(j).x + (vecteur).z*(k).x; (vecteur).y = float_1*(i).y + float_2*(j).y  + (vecteur).z*(k).y; (vecteur).z = float_1*(i).z + float_2*(j).z  + (vecteur).z*(k).z; }
-inline void APPLIQUER_EN_PLACE_BASE_3D(VECTEUR3D* vecteur, VECTEUR3D* i,VECTEUR3D* j,VECTEUR3D* k) {
+inline void APPLIQUER_EN_PLACE_BASE_3D(VECTEUR3D* vecteur, const VECTEUR3D* i, const VECTEUR3D* j, const VECTEUR3D* k) {
 	float tmp,tmp2;
 	APPLIQUER_EN_PLACE_BASE_3D_M(*vecteur, *i,*j,*k, tmp,tmp2);
 }
 
 #define APPLIQUER_BASE_INVERSE_3D_M(v_initial, v_resultant, i,j,k) { (v_resultant).x = PDT_SCALAIRE_3D_M(v_initial,i); (v_resultant).y = PDT_SCALAIRE_3D_M(v_initial,j); (v_resultant).z = PDT_SCALAIRE_3D_M(v_initial,k); }
 #define APPLIQUER_EN_PLACE_BASE_INVERSE_3D_M(v, i,j,k, float_1,float_2) { (float_1) = PDT_SCALAIRE_3D_M(v,i); (float_2) = PDT_SCALAIRE_3D_M(v,j); (v).z = PDT_SCALAIRE_3D_M(v,k); (v).x = (float_1); (v).y = (float_2); }
-inline void APPLIQUER_EN_PLACE_BASE_INVERSE_3D(VECTEUR3D* vecteur, VECTEUR3D* i,VECTEUR3D* j,VECTEUR3D* k) {
+inline void APPLIQUER_EN_PLACE_BASE_INVERSE_3D(VECTEUR3D* vecteur, const VECTEUR3D* i, const VECTEUR3D* j, const VECTEUR3D* k) {
 	float tmp,tmp2;
 	APPLIQUER_EN_PLACE_BASE_INVERSE_3D_M(*vecteur, *i,*j,*k, tmp,tmp2);
 }
