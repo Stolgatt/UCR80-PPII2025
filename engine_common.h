@@ -6,14 +6,14 @@
 #include <math.h>
 
 // jsp pk mais gcc trouve pas la déclaration de sincosf dans <math.h> donc pour éviter les warnings chiants je fais ça
-void sincosf(float, float*, float*);
+//void sincosf(float, float*, float*);
 // et au pire... :(
-#ifdef SINCOSF_SYMBOL_NOT_FOUND_pk_ça_fait_ça_je_comprends_pas_en_tout_cas_voici_un_fix_dégueulasse_mais_fonctionnel
+//#ifdef SINCOSF_SYMBOL_NOT_FOUND_pk_ça_fait_ça_je_comprends_pas_en_tout_cas_voici_un_fix_dégueulasse_mais_fonctionnel
 void inline sincosf(float angle,float* sin,float* cos) {
 	*sin = sinf(angle);
 	*cos = cosf(angle);
 }
-#endif
+//#endif
 
 #define RAD2DEG(angle) ((angle)*180./M_PI)
 
