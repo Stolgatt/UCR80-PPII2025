@@ -18,14 +18,17 @@ int main() {
 	SDL_Surface* bmp_test = SDL_LoadBMP("map.bmp");
 	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, bmp_test);
 	SDL_FreeSurface(bmp_test);
+	bmp_test = SDL_LoadBMP("delorean.bmp");
+	SDL_Texture* texture2 = SDL_CreateTextureFromSurface(renderer, bmp_test);
+	SDL_FreeSurface(bmp_test);
 
 	CAMERA cam;
 	cam.N_MAX = 10000;
 	cam.tableau_z = calloc(cam.N_MAX,sizeof(Z_SPRITE));
 	cam.tableau_p = calloc(cam.N_MAX,sizeof(SPRITE_PROJETE));
 	cam.position.x = 0.;
-	cam.position.y = 0.;
-	cam.position.z = -50;
+	cam.position.y = -100.;
+	cam.position.z = 20.;
 	cam.longitude = 0.;
 	cam.latitude = 0.;
 	cam.roulis = 0.;
@@ -45,7 +48,7 @@ int main() {
 	plan.echelle = 1.;
 	plan.position.x = plan.position.z = 0.;
 	plan.position.y = 0;
-	plan.au_dessus = plan.en_dessous = plan.sprites_au_dessus = NULL;
+	plan.au_dessus = plan.en_dessous = NULL;
 	plan.source.x = plan.source.y = 0;
 	plan.source.w = 1600;
 	plan.source.h = 3000;
@@ -53,6 +56,23 @@ int main() {
 	SCENE scene;
 	scene.sprites_tout_en_bas = NULL;
 	scene.tout_en_bas = scene.tout_en_haut = &plan;
+
+	SPRITE sprite;
+	sprite.texture = texture2;
+	sprite.echelle = 2.;
+	sprite.source.x = sprite.source.y;
+	sprite.source.w = 800;
+	sprite.source.h = 500;
+	sprite.position.x = sprite.position.y = 0.;
+	sprite.position.z = 20.;
+	TABLEAU_SPRITES tab_sprites;
+	tab_sprites.N = 1;
+	tab_sprites.suivant = NULL;
+	tab_sprites.sprites = &sprite;
+	plan.sprites_au_dessus = &tab_sprites;
+
+	VECTEUR2D deplacement_zs,deplacement_qd;
+	float speed_coef = 5.;
 
 	enum {UP=0,DOWN=1,LEFT=2,RIGHT=3,Z,Q,S,D,A,E,W,X};
 	int INPUT[12] = {0};
@@ -160,12 +180,17 @@ int main() {
 		if (INPUT[X]) plan.rotation -= 0.05;
 		cam.latitude = cam.latitude > M_PI/2 ? M_PI/2 : cam.latitude;
 		cam.latitude = cam.latitude < -M_PI/2 ? -M_PI/2 : cam.latitude;
-		if (INPUT[Z]) cam.position.y += 0.7;
-		if (INPUT[S]) cam.position.y -= 0.7;
-		if (INPUT[D]) cam.position.x += 0.7;
-		if (INPUT[Q]) cam.position.x -= 0.7;
-		if (INPUT[E]) cam.position.z += 0.7;
-		if (INPUT[A]) cam.position.z -= 0.7;
+		sincosf(cam.longitude,&deplacement_qd.y,&deplacement_qd.x);
+		deplacement_qd.x *= speed_coef;
+		deplacement_qd.y *= speed_coef;
+		deplacement_zs.x = -deplacement_qd.y;
+		deplacement_zs.y = deplacement_qd.x;
+		if (INPUT[Z]) {cam.position.x += deplacement_zs.x; cam.position.y += deplacement_zs.y;}
+		if (INPUT[S]) {cam.position.x -= deplacement_zs.x; cam.position.y -= deplacement_zs.y;}
+		if (INPUT[D]) {cam.position.x += deplacement_qd.x; cam.position.y += deplacement_qd.y;}
+		if (INPUT[Q]) {cam.position.x -= deplacement_qd.x; cam.position.y -= deplacement_qd.y;}
+		if (INPUT[E]) cam.position.z += speed_coef;
+		if (INPUT[A]) cam.position.z -= speed_coef;
 
 		SDL_RenderClear(renderer);
 		AFFICHAGE_CAMERA(&cam, &scene);
