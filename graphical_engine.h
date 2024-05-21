@@ -29,7 +29,8 @@ typedef struct Z_SPRITE Z_SPRITE;
 
 struct SPRITE_PROJETE {
 
-	SPRITE* sprite;
+	SDL_Texture* texture;
+	SDL_Rect source;
 	SDL_Rect dest;
 
 };
