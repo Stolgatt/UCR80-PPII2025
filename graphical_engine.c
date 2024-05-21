@@ -16,7 +16,65 @@ struct PRECALCULS {
 };
 typedef struct PRECALCULS PRECALCULS;
 
+inline void TRI_INSERTION(Z_SPRITE* tableau, unsigned int debut, unsigned int fin) {
+
+	for (unsigned int i=debut+1; i<fin; ++i) {
+		unsigned int j;
+		Z_SPRITE tmp;
+		j=debut;
+		while (tableau[i].Z <= tableau[j].Z && j<i) j++;
+		for (; j<i; ++j) {
+			tmp = tableau[j];
+			tableau[j] = tableau[i];
+			tableau[i] = tmp;
+		}
+	}
+
+}
+
+inline void hopla(Z_SPRITE* tableau, unsigned int i, unsigned int j) {
+	Z_SPRITE tmp = tableau[i];
+	tableau[i] = tableau[j];
+	tableau[j] = tmp;
+}
+
+void TRI_RAPIDE(Z_SPRITE* tableau, unsigned int debut, unsigned int fin) {
+
+	if (fin-debut < 20)
+		TRI_INSERTION(tableau,debut,fin);
+	else {
+		hopla(tableau,(fin/debut + debut*fin + (unsigned int)(tableau))%(fin-debut) + debut,fin-1);
+		unsigned int index_bas = debut;
+		unsigned int index_haut = fin-2;
+		while (index_bas < index_haut) {
+			if (tableau[index_bas].Z >= tableau[fin-1].Z) index_bas++;
+			else {
+				while (index_bas < index_haut) {
+					if (tableau[index_haut].Z <= tableau[fin-1].Z) index_haut--;
+					else {
+						hopla(tableau,index_bas,index_haut);
+						break;
+					}
+				}
+			}
+		}
+		if (tableau[index_bas].Z >= tableau[fin-1].Z) {
+			hopla(tableau,index_bas+1,fin-1);
+			TRI_RAPIDE(tableau,debut,index_bas+1);
+			TRI_RAPIDE(tableau,index_bas+1,fin);
+		}
+		else {
+			hopla(tableau,index_bas,fin-1);
+			TRI_RAPIDE(tableau,debut,index_bas);
+			TRI_RAPIDE(tableau,index_bas,fin);
+		}
+
+	}
+
+}
+
 void AFFICHAGE_SPRITES(const TABLEAU_SPRITES* sprites, const CAMERA* cam, const PRECALCULS* precalc) {
+
 	unsigned int n = 0;
 
 	// projection de tous les sprites
@@ -53,11 +111,13 @@ void AFFICHAGE_SPRITES(const TABLEAU_SPRITES* sprites, const CAMERA* cam, const 
 	}
 
 	// tri de tous les Z_SPRITEs (suivant Z :)
+	TRI_INSERTION(cam->tableau_z,0,n);
 
 	// parcours des Z_SPRITEs et affichage des sprites correspondants
 	for (unsigned int i=0; i<n; ++i) {
 		SDL_RenderCopy(cam->renderer,cam->tableau_p[cam->tableau_z[i].index].texture,&cam->tableau_p[cam->tableau_z[i].index].source,&cam->tableau_p[cam->tableau_z[i].index].dest);
 	}
+
 }
 
 

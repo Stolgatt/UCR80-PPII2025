@@ -57,18 +57,22 @@ int main() {
 	scene.sprites_tout_en_bas = NULL;
 	scene.tout_en_bas = scene.tout_en_haut = &plan;
 
-	SPRITE sprite;
-	sprite.texture = texture2;
-	sprite.echelle = 2.;
-	sprite.source.x = sprite.source.y;
-	sprite.source.w = 800;
-	sprite.source.h = 500;
-	sprite.position.x = sprite.position.y = 0.;
-	sprite.position.z = 20.;
+	SPRITE sprite[50];
+	for (int i=0; i<sizeof(sprite)/sizeof(SPRITE); ++i) {
+		sprite[i].texture = texture2;
+		sprite[i].echelle = 2.;
+		sprite[i].source.x = sprite[i].source.y = 0;
+		sprite[i].source.w = 800;
+		sprite[i].source.h = 500;
+		sprite[i].position.z = 20.;
+		sprite[i].position.x = (15*i)%500;
+		sprite[i].position.y = (10*i*i)%500;
+	}
+
 	TABLEAU_SPRITES tab_sprites;
-	tab_sprites.N = 1;
+	tab_sprites.N = sizeof(sprite)/sizeof(SPRITE);
 	tab_sprites.suivant = NULL;
-	tab_sprites.sprites = &sprite;
+	tab_sprites.sprites = sprite;
 	plan.sprites_au_dessus = &tab_sprites;
 
 	VECTEUR2D deplacement_zs,deplacement_qd;
