@@ -352,8 +352,8 @@ int main() {
         cam.position.x += deplacement_zs.x; cam.position.y += deplacement_zs.y;
         sprite[0].position.x += deplacement_zs.x;sprite[0].position.y += deplacement_zs.y;
 
-        if (INPUT[Z] && sprite[0].speed < sprite[0].max_speed) {sprite[0].speed += 1;printf("Speed: %f\n", sprite[0].speed);}
-        if (INPUT[S] && sprite[0].speed > 0) {sprite[0].speed -= 1;}
+        if (INPUT[Z] && sprite[0].speed < sprite[0].max_speed && (SDL_GetTicks() - temps_fps >= 980)) {sprite[0].speed += 1;printf("Speed: %f\n", sprite[0].speed);}
+        if (INPUT[S] && sprite[0].speed > 0 && (SDL_GetTicks() - temps_fps >= 980)) {sprite[0].speed -= 1;}
         if (INPUT[D]) {cam.longitude -= 0.02;}
         if (INPUT[Q]) {cam.longitude += 0.02;}
         if (INPUT[E]) cam.position.z += speed_coef; // z = z + speed_coef
