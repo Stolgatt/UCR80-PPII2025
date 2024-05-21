@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL2/SDL.h>
-
 #include "engine_common.h"
 #include "graphical_engine.h"
 
@@ -14,61 +13,170 @@ typedef struct {
     SDL_Rect rect;
 } Car;
 
-void show_start_screen(SDL_Renderer* renderer) {
-    SDL_Surface* start_surface = SDL_LoadBMP("Page_Acceuil.bmp"); // Load a BMP image for the start screen
+void show_start_screen(SDL_Renderer* renderer) { 
+    SDL_Surface* start_surface = SDL_LoadBMP("Page_Acceuil.bmp");
     if (!start_surface) {
-        printf("Unable to load Page_Acceuil.bmp: %s\n", SDL_GetError());
+        printf("Impossible de charger la page d'acceuil: %s\n", SDL_GetError());
         return;
     }
     SDL_Texture* start_texture = SDL_CreateTextureFromSurface(renderer, start_surface);
     SDL_FreeSurface(start_surface);
 
+    int spriteFullWidth, spriteFullHeight;
+    if (SDL_QueryTexture(start_texture, NULL, NULL, &spriteFullWidth, &spriteFullHeight) != 0) {
+        printf("Unable to query texture: %s\n", SDL_GetError());
+        return;
+    }
+
+    int spriteWidth = spriteFullWidth / 3;
+    int spriteHeight = spriteFullHeight / 2;
+    int offsetX = 0;
+    int offsetY = 0;
+
+    SDL_Rect spriteRect = { .x = offsetX * spriteWidth, .y = offsetY * spriteHeight, .w = spriteWidth, .h = spriteHeight };
+    SDL_Rect destRect = { .x = 0, .y = 0, .w = TX, .h = TY };
+
     SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, start_texture, NULL, NULL);
+    if (SDL_RenderCopy(renderer, start_texture, &spriteRect, &destRect) != 0) {
+        printf("Unable to render texture: %s\n", SDL_GetError());
+    }
+    SDL_RenderPresent(renderer);
+
+    SDL_DestroyTexture(start_texture);
+}
+
+void show_level_selection(SDL_Renderer* renderer) {
+    SDL_Surface* start_surface = SDL_LoadBMP("Select_Map.bmp");
+    if (!start_surface) {
+        printf("Impossible de charger la page de selection: %s\n", SDL_GetError());
+        return;
+    }
+    SDL_Texture* start_texture = SDL_CreateTextureFromSurface(renderer, start_surface);
+    SDL_FreeSurface(start_surface);
+
+    int spriteFullWidth, spriteFullHeight;
+    if (SDL_QueryTexture(start_texture, NULL, NULL, &spriteFullWidth, &spriteFullHeight) != 0) {
+        printf("Unable to query texture: %s\n", SDL_GetError());
+        return;
+    }
+
+    int spriteWidth = spriteFullWidth / 4;
+    int spriteHeight = spriteFullHeight / 2;
+    int offsetX = 0;
+    int offsetY = 0;
+
+    SDL_Rect spriteRect = { .x = offsetX * spriteWidth, .y = offsetY * spriteHeight, .w = spriteWidth, .h = spriteHeight };
+    SDL_Rect destRect = { .x = 0, .y = 0, .w = TX, .h = TY };
+
+    SDL_RenderClear(renderer);
+    if (SDL_RenderCopy(renderer, start_texture, &spriteRect, &destRect) != 0) {
+        printf("Unable to render texture: %s\n", SDL_GetError());
+    }
     SDL_RenderPresent(renderer);
 
     SDL_DestroyTexture(start_texture);
 }
 
 int main() {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
+        printf("SDL_Init Error: %s\n", SDL_GetError());
+        return 1;
+    }
 
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER); // Initialisation de la SDL
-    SDL_Window* window = SDL_CreateWindow("graphical engine test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, TX, TY, SDL_WINDOW_SHOWN); // Création de la fenêtre
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE); // Création du renderer
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Couleur de fond noire
+    SDL_Window* window = SDL_CreateWindow("graphical engine test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, TX, TY, SDL_WINDOW_SHOWN);
+    if (!window) {
+        printf("SDL_CreateWindow Error: %s\n", SDL_GetError());
+        SDL_Quit();
+        return 1;
+    }
 
-    show_start_screen(renderer); // Affiche la page d'accueil
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
+    if (!renderer) {
+        printf("SDL_CreateRenderer Error: %s\n", SDL_GetError());
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+
+    show_start_screen(renderer);
+
+    SDL_Rect clickZone1 = { .x = 827, .y = 138, .w = 1115, .h = 271 };
+    SDL_Rect clickZone2 = { .x = 827, .y = 813, .w = 1115, .h = 945 };
+    SDL_Rect clickZone3 = { .x = 131, .y = 403, .w = 494, .h = 809 };
+    SDL_Rect clickZone4 = { .x = 1644, .y = 933, .w = 1799, .h = 1004 };
 
     SDL_Event event;
     int start_game = 0;
-    while (!start_game) {
-        while (SDL_PollEvent(&event)) {
+    while (start_game != 2) {
+        while (SDL_PollEvent(&event) && start_game == 0) {
             if (event.type == SDL_QUIT) {
                 SDL_DestroyRenderer(renderer);
                 SDL_DestroyWindow(window);
                 SDL_Quit();
-                exit(0);
-            } else if (event.type == SDL_KEYDOWN) {
-                start_game = 1;
+                return 0;
+            } else if (event.type == SDL_MOUSEBUTTONDOWN) {
+                int mouseX = event.button.x;
+                int mouseY = event.button.y;
+                if (mouseX >= clickZone1.x && mouseX <= clickZone1.w &&
+                    mouseY >= clickZone1.y && mouseY <= clickZone1.h) {
+                    show_level_selection(renderer);
+                    start_game = 1;
+                }
+                else if (mouseX >= clickZone2.x && mouseX <= clickZone2.w &&
+                    mouseY >= clickZone2.y && mouseY <= clickZone2.h) {
+                    show_level_selection(renderer);
+                    start_game = 1;
+                }
+            }
+        }
+        while (SDL_PollEvent(&event) && start_game == 1) {
+            if (event.type == SDL_QUIT) {
+                SDL_DestroyRenderer(renderer);
+                SDL_DestroyWindow(window);
+                SDL_Quit();
+                return 0;
+            } else if (event.type == SDL_MOUSEBUTTONDOWN) {
+                int mouseX = event.button.x;
+                int mouseY = event.button.y;
+                if (mouseX >= clickZone3.x && mouseX <= clickZone3.w &&
+                    mouseY >= clickZone3.y && mouseY <= clickZone3.h) {
+                    start_game = 2;
+                }
+                else if (mouseX >= clickZone4.x && mouseX <= clickZone4.w &&
+                    mouseY >= clickZone4.y && mouseY <= clickZone4.h) {
+                    show_start_screen(renderer);
+                    start_game = 0;
+                }
             }
         }
     }
 
-    SDL_Surface* bmp_test = SDL_LoadBMP("map.bmp"); // charge une image BMP depuis le fichier "map.bmp"
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, bmp_test); // crée une texture à partir de la surface BMP chargée.
-    SDL_FreeSurface(bmp_test); // libère la mémoire allouée pour la surface BMP
+    SDL_Surface* bmp_test = SDL_LoadBMP("map.bmp");
+    if (!bmp_test) {
+        printf("Unable to load map.bmp: %s\n", SDL_GetError());
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
 
-    SDL_Surface* car_surface = SDL_LoadBMP("car.bmp"); // charge une image BMP pour la voiture depuis le fichier "car.bmp"
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, bmp_test);
+    SDL_FreeSurface(bmp_test);
+
+    SDL_Surface* car_surface = SDL_LoadBMP("car.bmp");
+    
     SDL_Texture* car_texture = SDL_CreateTextureFromSurface(renderer, car_surface);
     SDL_FreeSurface(car_surface);
 
-    CAMERA cam; // Initialise une structure CAMERA avec divers paramètres, y compris la position, l'orientation, et des textures temporaires.
+    CAMERA cam;
     cam.N_MAX = 10000;
     cam.tableau_z = calloc(cam.N_MAX, sizeof(Z_SPRITE));
     cam.tableau_p = calloc(cam.N_MAX, sizeof(SPRITE_PROJETE));
     cam.position.x = 0.;
     cam.position.y = 0.;
-    cam.position.z = -50;
+    cam.position.z = 50;
     cam.longitude = 0.;
     cam.latitude = 0.;
     cam.roulis = 0.;
@@ -76,13 +184,15 @@ int main() {
     cam.tmp_text = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, 4000, 4000);
     cam.tmp_cible = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, 1.5 * TX, 1.5 * TX);
     cam.cible = NULL;
-    cam.dimension_cible.x = 0; cam.dimension_cible.y = 0;
-    cam.dimension_cible.w = TX; cam.dimension_cible.h = TY;
+    cam.dimension_cible.x = 0;
+    cam.dimension_cible.y = 0;
+    cam.dimension_cible.w = TX;
+    cam.dimension_cible.h = TY;
     cam.echelle_ecran = 0.025;
     cam.distance_ecran = 10.;
     cam.offset_horizontal = cam.offset_vertical = 0.;
 
-    PLAN_HORIZONTAL plan; // Initialise un plan horizontal avec une texture, une position, une rotation, une échelle, et des pointeurs vers les sprites au-dessus et en-dessous.
+    PLAN_HORIZONTAL plan;
     plan.texture = texture;
     plan.rotation = 0.;
     plan.echelle = 1.;
@@ -93,7 +203,7 @@ int main() {
     plan.source.w = 1600;
     plan.source.h = 3000;
 
-    SCENE scene; // Initialise une scène avec un plan au-dessus et un plan en-dessous.
+    SCENE scene;
     scene.sprites_tout_en_bas = NULL;
     scene.tout_en_bas = scene.tout_en_haut = &plan;
 
@@ -102,25 +212,22 @@ int main() {
     player_car.y = 0;
     player_car.texture = car_texture;
     SDL_QueryTexture(car_texture, NULL, NULL, &player_car.rect.w, &player_car.rect.h);
-    player_car.rect.w /= 4; // Redimensionner si nécessaire
-    player_car.rect.h /= 4; // Redimensionner si nécessaire
     player_car.rect.x = (int)player_car.x;
     player_car.rect.y = (int)player_car.y;
 
-    enum { UP = 0, DOWN, LEFT, RIGHT, Z, Q, S, D, A, E, W, X }; // Définit une énumération pour les touches de contrôle.
-    int INPUT[12] = { 0 }; // Crée un tableau INPUT pour suivre l'état des touches de contrôle.
+    enum { UP = 0, DOWN, LEFT, RIGHT, Z, Q, S, D, A, E, W, X };
+    int INPUT[12] = { 0 };
     SDL_Event EVENT;
     int loop = 1;
     int fps = 0;
-    long long temps_fps = SDL_GetTicks(); // Initialise un compteur de FPS.
-    float speed = 0; // Vitesse de la voiture
+    long long temps_fps = SDL_GetTicks();
+    float speed = 5.0;
 
-    while (loop) { // Boucle principale du programme.
-
-        while (SDL_PollEvent(&EVENT) != 0) { // Gestion des événements.
+    while (loop) {
+        while (SDL_PollEvent(&EVENT) != 0) {
             if (EVENT.type == SDL_QUIT) {
                 loop = 0;
-            } else if (EVENT.type == SDL_KEYDOWN) { // Gestion des touches de contrôle.
+            } else if (EVENT.type == SDL_KEYDOWN) {
                 switch (EVENT.key.keysym.sym) {
                     case SDLK_UP:
                         INPUT[UP] = 1;
@@ -205,7 +312,6 @@ int main() {
             }
         }
 
-        // Gestion des déplacements de la caméra.
         if (INPUT[UP]) player_car.y -= speed;
         if (INPUT[DOWN]) player_car.y += speed;
         if (INPUT[LEFT]) player_car.x -= speed;
@@ -221,20 +327,20 @@ int main() {
         if (INPUT[X]) plan.rotation -= 0.05;
         cam.latitude = cam.latitude > M_PI / 2 ? M_PI / 2 : cam.latitude;
         cam.latitude = cam.latitude < -M_PI / 2 ? -M_PI / 2 : cam.latitude;
-        if (INPUT[Z]) cam.position.y += 0.7;
-        if (INPUT[S]) cam.position.y -= 0.7;
-        if (INPUT[D]) cam.position.x += 0.7;
-        if (INPUT[Q]) cam.position.x -= 0.7;
-        if (INPUT[E]) cam.position.z += 0.7;
-        if (INPUT[A]) cam.position.z -= 0.7;
+        if (INPUT[Z]) cam.position.y += 5;
+        if (INPUT[S]) cam.position.y -= 5;
+        if (INPUT[D]) cam.position.x += 5;
+        if (INPUT[Q]) cam.position.x -= 5;
+        if (INPUT[E]) cam.position.z += 5;
+        if (INPUT[A]) cam.position.z -= 5;
 
-        SDL_RenderClear(renderer); // Efface le rendu précédent.
-        AFFICHAGE_CAMERA(&cam, &scene); // Affiche la scène à l'écran.
-        SDL_RenderCopy(renderer, player_car.texture, NULL, &player_car.rect); // Affiche la voiture du joueur.
-        SDL_RenderPresent(renderer); // Affiche le rendu à l'écran.
+        SDL_RenderClear(renderer);
+        AFFICHAGE_CAMERA(&cam, &scene);
+        SDL_RenderCopy(renderer, player_car.texture, NULL, &player_car.rect);
+        SDL_RenderPresent(renderer);
 
-        SDL_Delay(16); // Limite la fréquence de rafraîchissement à 60 FPS.
-        if (SDL_GetTicks() - temps_fps >= 1000) { // Affiche les FPS toutes les secondes.
+        SDL_Delay(16);
+        if (SDL_GetTicks() - temps_fps >= 1000) {
             printf("FPS: %d\n", fps);
             temps_fps = SDL_GetTicks();
             fps = 0;
@@ -244,10 +350,10 @@ int main() {
     }
 
     SDL_DestroyTexture(car_texture);
-    SDL_DestroyTexture(cam.tmp_text); // Libère la mémoire allouée pour les textures temporaires.
+    SDL_DestroyTexture(cam.tmp_text);
     SDL_DestroyTexture(cam.tmp_cible);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
-    exit(0);
+    return 0;
 }

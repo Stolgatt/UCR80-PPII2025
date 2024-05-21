@@ -18,6 +18,13 @@ main_test.out: main_test.c $(SRCS) $(HEADERS)
 	$(CC) $(FLAGS) $(SRCS) main_test.c -o main_test.out
 	chmod u+x main_test.out
 
+loadpixels.out: loadpixels.c
+	$(CC) $(FLAGS) loadpixels.c -o loadpixels.out
+	chmod u+x loadpixels.out
+
+pixel: loadpixels.out
+	./loadpixels.out
+
 run: main.out
 	./main.out
 
