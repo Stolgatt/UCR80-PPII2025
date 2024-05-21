@@ -172,8 +172,8 @@ int main() {
 
     CAMERA cam;
     cam.N_MAX = 10000;
-    cam.tableau_z = calloc(cam.N_MAX, sizeof(Z_SPRITE));
-    cam.tableau_p = calloc(cam.N_MAX, sizeof(SPRITE_PROJETE));
+    cam.tableau_z = calloc(cam.N_MAX,sizeof(Z_SPRITE));
+    cam.tableau_p = calloc(cam.N_MAX,sizeof(SPRITE_PROJETE));
     cam.position.x = 0.;
     cam.position.y = 0.;
     cam.position.z = 50;
@@ -181,8 +181,8 @@ int main() {
     cam.latitude = 0.;
     cam.roulis = 0.;
     cam.renderer = renderer;
-    cam.tmp_text = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, 4000, 4000);
-    cam.tmp_cible = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, 1.5 * TX, 1.5 * TX);
+    cam.tmp_text = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_TARGET,4000,4000);
+    cam.tmp_cible = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_TARGET,1.5*TX,1.5*TX);
     cam.cible = NULL;
     cam.dimension_cible.x = 0;
     cam.dimension_cible.y = 0;
@@ -198,7 +198,7 @@ int main() {
     plan.echelle = 1.;
     plan.position.x = plan.position.z = 0.;
     plan.position.y = 0;
-    plan.au_dessus = plan.en_dessous = plan.sprites_au_dessus = NULL;
+    plan.au_dessus = plan.en_dessous = NULL;
     plan.source.x = plan.source.y = 0;
     plan.source.w = 1600;
     plan.source.h = 3000;
@@ -206,6 +206,27 @@ int main() {
     SCENE scene;
     scene.sprites_tout_en_bas = NULL;
     scene.tout_en_bas = scene.tout_en_haut = &plan;
+
+    SPRITE sprite[50];
+    for (int i=0; i<sizeof(sprite)/sizeof(SPRITE); ++i) {
+        sprite[i].texture = texture2;
+        sprite[i].echelle = 2.;
+        sprite[i].source.x = sprite[i].source.y = 0;
+        sprite[i].source.w = 800;
+        sprite[i].source.h = 500;
+        sprite[i].position.z = 20.;
+        sprite[i].position.x = (15*i)%500;
+        sprite[i].position.y = (10*i*i)%500;
+    }
+
+    TABLEAU_SPRITES tab_sprites;
+    tab_sprites.N = sizeof(sprite)/sizeof(SPRITE);
+    tab_sprites.suivant = NULL;
+    tab_sprites.sprites = sprite;
+    plan.sprites_au_dessus = &tab_sprites;
+
+    VECTEUR2D deplacement_zs,deplacement_qd;
+    float speed_coef = 5.;
 
     Car player_car;
     player_car.x = 0;
@@ -310,14 +331,6 @@ int main() {
                         break;
                 }
             }
-        }
-
-        if (INPUT[UP]) player_car.y -= speed;
-        if (INPUT[DOWN]) player_car.y += speed;
-        if (INPUT[LEFT]) player_car.x -= speed;
-        if (INPUT[RIGHT]) player_car.x += speed;
-        player_car.rect.x = (int)player_car.x;
-        player_car.rect.y = (int)player_car.y;
 
         if (INPUT[UP]) cam.latitude += 0.05;
         if (INPUT[DOWN]) cam.latitude -= 0.05;
