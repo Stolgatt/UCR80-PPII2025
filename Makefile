@@ -3,7 +3,7 @@ SRCS = engine_common.c graphical_engine.c
 
 CC= gcc
 FLAGS= -Wall -Wextra -pedantic 
-FLAGS += -O3 -fno-omit-frame-pointer
+FLAGS += -O3 -fno-omit-frame-pointer -g
 FLAGS += -lm -fsanitize=address
 FLAGS += $(shell pkg-config --cflags sdl2)
 FLAGS += $(shell pkg-config --libs sdl2)

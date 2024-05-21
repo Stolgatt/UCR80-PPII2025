@@ -7,14 +7,14 @@
 #define TX 1920
 #define TY 1080
 
-typedef struct {
+/* typedef struct {
     float x, y;
     SDL_Texture* texture;
     SDL_Rect rect;
-} Car;
+} Car; */
 
 void show_start_screen(SDL_Renderer* renderer) { 
-    SDL_Surface* start_surface = SDL_LoadBMP("Page_Acceuil.bmp");
+    SDL_Surface* start_surface = SDL_LoadBMP("Page_Accueil.bmp");
     if (!start_surface) {
         printf("Impossible de charger la page d'acceuil: %s\n", SDL_GetError());
         return;
@@ -154,21 +154,12 @@ int main() {
     }
 
     SDL_Surface* bmp_test = SDL_LoadBMP("map.bmp");
-    if (!bmp_test) {
-        printf("Unable to load map.bmp: %s\n", SDL_GetError());
-        SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
-    }
-
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, bmp_test);
     SDL_FreeSurface(bmp_test);
 
-    SDL_Surface* car_surface = SDL_LoadBMP("car.bmp");
-    
-    SDL_Texture* car_texture = SDL_CreateTextureFromSurface(renderer, car_surface);
-    SDL_FreeSurface(car_surface);
+    bmp_test = SDL_LoadBMP("delorean.bmp");
+    SDL_Texture* car_texture = SDL_CreateTextureFromSurface(renderer, bmp_test);
+    SDL_FreeSurface(bmp_test);
 
     CAMERA cam;
     cam.N_MAX = 10000;
@@ -209,7 +200,7 @@ int main() {
 
     SPRITE sprite[50];
     for (int i=0; i<sizeof(sprite)/sizeof(SPRITE); ++i) {
-        sprite[i].texture = texture2;
+        sprite[i].texture = car_texture;
         sprite[i].echelle = 2.;
         sprite[i].source.x = sprite[i].source.y = 0;
         sprite[i].source.w = 800;
@@ -228,13 +219,13 @@ int main() {
     VECTEUR2D deplacement_zs,deplacement_qd;
     float speed_coef = 5.;
 
-    Car player_car;
+    /*Car player_car;
     player_car.x = 0;
     player_car.y = 0;
     player_car.texture = car_texture;
     SDL_QueryTexture(car_texture, NULL, NULL, &player_car.rect.w, &player_car.rect.h);
     player_car.rect.x = (int)player_car.x;
-    player_car.rect.y = (int)player_car.y;
+    player_car.rect.y = (int)player_car.y;*/
 
     enum { UP = 0, DOWN, LEFT, RIGHT, Z, Q, S, D, A, E, W, X };
     int INPUT[12] = { 0 };
@@ -242,7 +233,6 @@ int main() {
     int loop = 1;
     int fps = 0;
     long long temps_fps = SDL_GetTicks();
-    float speed = 5.0;
 
     while (loop) {
         while (SDL_PollEvent(&EVENT) != 0) {
@@ -331,6 +321,7 @@ int main() {
                         break;
                 }
             }
+        }
 
         if (INPUT[UP]) cam.latitude += 0.05;
         if (INPUT[DOWN]) cam.latitude -= 0.05;
@@ -340,16 +331,20 @@ int main() {
         if (INPUT[X]) plan.rotation -= 0.05;
         cam.latitude = cam.latitude > M_PI / 2 ? M_PI / 2 : cam.latitude;
         cam.latitude = cam.latitude < -M_PI / 2 ? -M_PI / 2 : cam.latitude;
-        if (INPUT[Z]) cam.position.y += 5;
-        if (INPUT[S]) cam.position.y -= 5;
-        if (INPUT[D]) cam.position.x += 5;
-        if (INPUT[Q]) cam.position.x -= 5;
-        if (INPUT[E]) cam.position.z += 5;
-        if (INPUT[A]) cam.position.z -= 5;
+        sincosf(cam.longitude,&deplacement_qd.y,&deplacement_qd.x);
+        deplacement_qd.x *= speed_coef;
+        deplacement_qd.y *= speed_coef;
+        deplacement_zs.x = -deplacement_qd.y;
+        deplacement_zs.y = deplacement_qd.x;
+        if (INPUT[Z]) {cam.position.x += deplacement_zs.x; cam.position.y += deplacement_zs.y;}
+        if (INPUT[S]) {cam.position.x -= deplacement_zs.x; cam.position.y -= deplacement_zs.y;}
+        if (INPUT[D]) {cam.position.x += deplacement_qd.x; cam.position.y += deplacement_qd.y;}
+        if (INPUT[Q]) {cam.position.x -= deplacement_qd.x; cam.position.y -= deplacement_qd.y;}
+        if (INPUT[E]) cam.position.z += speed_coef;
+        if (INPUT[A]) cam.position.z -= speed_coef;
 
         SDL_RenderClear(renderer);
         AFFICHAGE_CAMERA(&cam, &scene);
-        SDL_RenderCopy(renderer, player_car.texture, NULL, &player_car.rect);
         SDL_RenderPresent(renderer);
 
         SDL_Delay(16);
