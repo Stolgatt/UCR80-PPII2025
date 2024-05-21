@@ -7,12 +7,6 @@
 #define TX 1920
 #define TY 1080
 
-/* typedef struct {
-    float x, y;
-    SDL_Texture* texture;
-    SDL_Rect rect;
-} Car; */
-
 void show_start_screen(SDL_Renderer* renderer) { 
     SDL_Surface* start_surface = SDL_LoadBMP("Page_Accueil.bmp");
     if (!start_surface) {
@@ -169,7 +163,7 @@ int main() {
     cam.position.y = 0.;
     cam.position.z = 50;
     cam.longitude = 0.;
-    cam.latitude = 0.;
+    cam.latitude = -1.;
     cam.roulis = 0.;
     cam.renderer = renderer;
     cam.tmp_text = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_TARGET,4000,4000);
@@ -199,7 +193,7 @@ int main() {
     scene.tout_en_bas = scene.tout_en_haut = &plan;
 
     SPRITE sprite[50];
-    for (int i=0; i<sizeof(sprite)/sizeof(SPRITE); ++i) {
+    for (int i=0; i<(int) (sizeof(sprite)/sizeof(SPRITE)); ++i) {
         sprite[i].texture = car_texture;
         sprite[i].echelle = 2.;
         sprite[i].source.x = sprite[i].source.y = 0;
@@ -208,6 +202,8 @@ int main() {
         sprite[i].position.z = 20.;
         sprite[i].position.x = (15*i)%500;
         sprite[i].position.y = (10*i*i)%500;
+        sprite[i].speed = 0.;
+        sprite[i].max_speed = 5.;
     }
 
     TABLEAU_SPRITES tab_sprites;
@@ -219,16 +215,9 @@ int main() {
     VECTEUR2D deplacement_zs,deplacement_qd;
     float speed_coef = 5.;
 
-    /*Car player_car;
-    player_car.x = 0;
-    player_car.y = 0;
-    player_car.texture = car_texture;
-    SDL_QueryTexture(car_texture, NULL, NULL, &player_car.rect.w, &player_car.rect.h);
-    player_car.rect.x = (int)player_car.x;
-    player_car.rect.y = (int)player_car.y;*/
 
-    enum { UP = 0, DOWN, LEFT, RIGHT, Z, Q, S, D, A, E, W, X };
-    int INPUT[12] = { 0 };
+    enum { UP = 0, DOWN, LEFT, RIGHT, Z, Q, S, D, A, E, W, X, O, K, L, M}; 
+    int INPUT[120] = { 0 };
     SDL_Event EVENT;
     int loop = 1;
     int fps = 0;
@@ -276,6 +265,18 @@ int main() {
                     case SDLK_x:
                         INPUT[X] = 1;
                         break;
+                    case SDLK_o:
+                        INPUT[O] = 1;
+                        break;
+                    case SDLK_k:
+                        INPUT[K] = 1;
+                        break;
+                    case SDLK_l:
+                        INPUT[L] = 1;
+                        break;
+                    case SDLK_m:
+                        INPUT[M] = 1;
+                        break;
                     default:
                         break;
                 }
@@ -317,6 +318,18 @@ int main() {
                     case SDLK_x:
                         INPUT[X] = 0;
                         break;
+                    case SDLK_o:
+                        INPUT[O] = 0;
+                        break;
+                    case SDLK_k:
+                        INPUT[K] = 0;
+                        break;
+                    case SDLK_l:
+                        INPUT[L] = 0;
+                        break;
+                    case SDLK_m:
+                        INPUT[M] = 0;
+                        break;
                     default:
                         break;
                 }
@@ -329,19 +342,24 @@ int main() {
         if (INPUT[RIGHT]) cam.longitude -= 0.05;
         if (INPUT[W]) plan.rotation += 0.05;
         if (INPUT[X]) plan.rotation -= 0.05;
-        cam.latitude = cam.latitude > M_PI / 2 ? M_PI / 2 : cam.latitude;
-        cam.latitude = cam.latitude < -M_PI / 2 ? -M_PI / 2 : cam.latitude;
-        sincosf(cam.longitude,&deplacement_qd.y,&deplacement_qd.x);
-        deplacement_qd.x *= speed_coef;
-        deplacement_qd.y *= speed_coef;
-        deplacement_zs.x = -deplacement_qd.y;
+        cam.latitude = cam.latitude > M_PI / 2 ? M_PI / 2 : cam.latitude; // latitude = min(latitude, M_PI/2)
+        cam.latitude = cam.latitude < -M_PI / 2 ? -M_PI / 2 : cam.latitude; // latitude = max(latitude, -M_PI/2)
+        sincosf(cam.longitude,&deplacement_qd.y,&deplacement_qd.x); // x = cos(longitude) et y = sin(longitude)
+        deplacement_qd.x *= sprite[0].speed; 
+        deplacement_qd.y *= sprite[0].speed; 
+        deplacement_zs.x = -deplacement_qd.y; 
         deplacement_zs.y = deplacement_qd.x;
-        if (INPUT[Z]) {cam.position.x += deplacement_zs.x; cam.position.y += deplacement_zs.y;}
-        if (INPUT[S]) {cam.position.x -= deplacement_zs.x; cam.position.y -= deplacement_zs.y;}
-        if (INPUT[D]) {cam.position.x += deplacement_qd.x; cam.position.y += deplacement_qd.y;}
-        if (INPUT[Q]) {cam.position.x -= deplacement_qd.x; cam.position.y -= deplacement_qd.y;}
-        if (INPUT[E]) cam.position.z += speed_coef;
+        cam.position.x += deplacement_zs.x; cam.position.y += deplacement_zs.y;
+        sprite[0].position.x += deplacement_zs.x;sprite[0].position.y += deplacement_zs.y;
+
+        if (INPUT[Z] && sprite[0].speed < sprite[0].max_speed) {sprite[0].speed += 1;printf("Speed: %f\n", sprite[0].speed);}
+        if (INPUT[S] && sprite[0].speed > 0) {sprite[0].speed -= 1;}
+        if (INPUT[D]) {cam.longitude -= 0.02;}
+        if (INPUT[Q]) {cam.longitude += 0.02;}
+        if (INPUT[E]) cam.position.z += speed_coef; // z = z + speed_coef
         if (INPUT[A]) cam.position.z -= speed_coef;
+        if (INPUT[O]) {sprite[0].position.x += deplacement_zs.x;sprite[0].position.y += deplacement_zs.y;} // x = x + -sin(longitude)*speed_coef
+
 
         SDL_RenderClear(renderer);
         AFFICHAGE_CAMERA(&cam, &scene);
