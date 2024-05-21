@@ -204,7 +204,8 @@ int main() {
                         break;
                 }
             }
-if (INPUT[UP]) cam.latitude += 0.05;
+
+        if (INPUT[UP]) cam.latitude += 0.05;
         if (INPUT[DOWN]) cam.latitude -= 0.05;
         if (INPUT[LEFT]) cam.longitude += 0.05;
         if (INPUT[RIGHT]) cam.longitude -= 0.05;
@@ -224,7 +225,7 @@ if (INPUT[UP]) cam.latitude += 0.05;
         if (INPUT[E]) cam.position.z += speed_coef;
         if (INPUT[A]) cam.position.z -= speed_coef;
 
-                SDL_RenderClear(renderer); // Efface le rendu précédent.
+        SDL_RenderClear(renderer); // Efface le rendu précédent.
         AFFICHAGE_CAMERA(&cam, &scene); // Affiche la scène à l'écran.
         SDL_RenderCopy(renderer, player_car.texture, NULL, &player_car.rect); // Affiche la voiture du joueur.
         SDL_RenderPresent(renderer); // Affiche le rendu à l'écran.
