@@ -14,12 +14,45 @@ typedef struct {
     SDL_Rect rect;
 } Car;
 
+void show_start_screen(SDL_Renderer* renderer) {
+    SDL_Surface* start_surface = SDL_LoadBMP("Page_Acceuil.bmp"); // Load a BMP image for the start screen
+    if (!start_surface) {
+        printf("Unable to load Page_Acceuil.bmp: %s\n", SDL_GetError());
+        return;
+    }
+    SDL_Texture* start_texture = SDL_CreateTextureFromSurface(renderer, start_surface);
+    SDL_FreeSurface(start_surface);
+
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, start_texture, NULL, NULL);
+    SDL_RenderPresent(renderer);
+
+    SDL_DestroyTexture(start_texture);
+}
+
 int main() {
 
-    SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER); // Initialisation de la SDL
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER); // Initialisation de la SDL
     SDL_Window* window = SDL_CreateWindow("graphical engine test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, TX, TY, SDL_WINDOW_SHOWN); // Création de la fenêtre
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE); // Création du renderer
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Couleur de fond noire
+
+    show_start_screen(renderer); // Affiche la page d'accueil
+
+    SDL_Event event;
+    int start_game = 0;
+    while (!start_game) {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                SDL_DestroyRenderer(renderer);
+                SDL_DestroyWindow(window);
+                SDL_Quit();
+                exit(0);
+            } else if (event.type == SDL_KEYDOWN) {
+                start_game = 1;
+            }
+        }
+    }
 
     SDL_Surface* bmp_test = SDL_LoadBMP("map.bmp"); // charge une image BMP depuis le fichier "map.bmp"
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, bmp_test); // crée une texture à partir de la surface BMP chargée.
@@ -41,7 +74,7 @@ int main() {
     cam.roulis = 0.;
     cam.renderer = renderer;
     cam.tmp_text = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, 4000, 4000);
-    cam.tmp_cible = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, 1.5*TX, 1.5*TX);
+    cam.tmp_cible = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, 1.5 * TX, 1.5 * TX);
     cam.cible = NULL;
     cam.dimension_cible.x = 0; cam.dimension_cible.y = 0;
     cam.dimension_cible.w = TX; cam.dimension_cible.h = TY;
@@ -60,7 +93,7 @@ int main() {
     plan.source.w = 1600;
     plan.source.h = 3000;
 
-    SCENE scene; // Initialise une scène avec un plan au-dessus et un plan en-dessous.    
+    SCENE scene; // Initialise une scène avec un plan au-dessus et un plan en-dessous.
     scene.sprites_tout_en_bas = NULL;
     scene.tout_en_bas = scene.tout_en_haut = &plan;
 
@@ -74,8 +107,8 @@ int main() {
     player_car.rect.x = (int)player_car.x;
     player_car.rect.y = (int)player_car.y;
 
-    enum {UP=0, DOWN=1, LEFT=2, RIGHT=3, Z, Q, S, D, A, E, W, X}; // Définit une énumération pour les touches de contrôle.
-    int INPUT[12] = {0}; // Crée un tableau INPUT pour suivre l'état des touches de contrôle.
+    enum { UP = 0, DOWN, LEFT, RIGHT, Z, Q, S, D, A, E, W, X }; // Définit une énumération pour les touches de contrôle.
+    int INPUT[12] = { 0 }; // Crée un tableau INPUT pour suivre l'état des touches de contrôle.
     SDL_Event EVENT;
     int loop = 1;
     int fps = 0;
@@ -186,8 +219,8 @@ int main() {
         if (INPUT[RIGHT]) cam.longitude -= 0.05;
         if (INPUT[W]) plan.rotation += 0.05;
         if (INPUT[X]) plan.rotation -= 0.05;
-        cam.latitude = cam.latitude > M_PI/2 ? M_PI/2 : cam.latitude;
-        cam.latitude = cam.latitude < -M_PI/2 ? -M_PI/2 : cam.latitude;
+        cam.latitude = cam.latitude > M_PI / 2 ? M_PI / 2 : cam.latitude;
+        cam.latitude = cam.latitude < -M_PI / 2 ? -M_PI / 2 : cam.latitude;
         if (INPUT[Z]) cam.position.y += 0.7;
         if (INPUT[S]) cam.position.y -= 0.7;
         if (INPUT[D]) cam.position.x += 0.7;
