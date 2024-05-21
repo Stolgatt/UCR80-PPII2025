@@ -1,43 +1,108 @@
 #include "graphical_engine.h"
 
 struct PRECALCULS {
-	VECTEUR3D i; // vecteur unitaire de la base de la caméra
+	VECTEUR3D i;
 	VECTEUR3D j;
 	VECTEUR3D k;
-	VECTEUR3D cam_pos; // position de la caméra
+	VECTEUR3D cam_pos;
 
-	float min_l; // info nécessaires au test de visibilité
+	float min_l;
 	float max_l;
 	float min_h;
 	float max_h;
+
+	float xcoef;
+	float ycoef;
 };
 typedef struct PRECALCULS PRECALCULS;
 
-void AFFICHAGE_SPRITES(const TABLEAU_SPRITES* sprites, const CAMERA* cam, const PRECALCULS* precalc) { // affiche les sprites de la liste sprites sur la cible cam->tmp_cible
+inline void TRI_INSERTION(Z_SPRITE* tableau, unsigned int debut, unsigned int fin) {
+
+	for (unsigned int i=debut+1; i<fin; ++i) {
+		unsigned int j;
+		Z_SPRITE tmp;
+		j=debut;
+		while (tableau[i].Z <= tableau[j].Z && j<i) j++;
+		for (; j<i; ++j) {
+			tmp = tableau[j];
+			tableau[j] = tableau[i];
+			tableau[i] = tmp;
+		}
+	}
+
+}
+
+inline void hopla(Z_SPRITE* tableau, unsigned int i, unsigned int j) {
+	Z_SPRITE tmp = tableau[i];
+	tableau[i] = tableau[j];
+	tableau[j] = tmp;
+}
+
+void TRI_RAPIDE(Z_SPRITE* tableau, unsigned int debut, unsigned int fin) {
+
+	if (fin-debut < 20)
+		TRI_INSERTION(tableau,debut,fin);
+	else {
+		hopla(tableau,(fin/debut + debut*fin + (unsigned int)(tableau))%(fin-debut) + debut,fin-1);
+		unsigned int index_bas = debut;
+		unsigned int index_haut = fin-2;
+		while (index_bas < index_haut) {
+			if (tableau[index_bas].Z >= tableau[fin-1].Z) index_bas++;
+			else {
+				while (index_bas < index_haut) {
+					if (tableau[index_haut].Z <= tableau[fin-1].Z) index_haut--;
+					else {
+						hopla(tableau,index_bas,index_haut);
+						break;
+					}
+				}
+			}
+		}
+		if (tableau[index_bas].Z >= tableau[fin-1].Z) {
+			hopla(tableau,index_bas+1,fin-1);
+			TRI_RAPIDE(tableau,debut,index_bas+1);
+			TRI_RAPIDE(tableau,index_bas+1,fin);
+		}
+		else {
+			hopla(tableau,index_bas,fin-1);
+			TRI_RAPIDE(tableau,debut,index_bas);
+			TRI_RAPIDE(tableau,index_bas,fin);
+		}
+
+	}
+
+}
+
+void AFFICHAGE_SPRITES(const TABLEAU_SPRITES* sprites, const CAMERA* cam, const PRECALCULS* precalc) {
+
 	unsigned int n = 0;
 
 	// projection de tous les sprites
-	while (sprites != NULL) { // parcours de tous les sprites
-		for (unsigned int i=0; i<sprites->N; ++i) { 
+	while (sprites != NULL) {
+		for (unsigned int i=0; i<sprites->N; ++i) {
 			VECTEUR3D pos;
 			// calcul de la position du sprite dans l'espace caméra
-			pos = sprites->sprites[i].position; // position du sprite dans le repère monde
-			APPLIQUER_EN_PLACE_BASE_INVERSE_3D(&pos,&precalc->i,&precalc->j,&precalc->k); // position du sprite dans le repère caméra
+			pos = sprites->sprites[i].position;
+			APPLIQUER_EN_PLACE_BASE_INVERSE_3D(&pos,&precalc->i,&precalc->j,&precalc->k);
 			pos.x -= precalc->cam_pos.x;
 			pos.y -= precalc->cam_pos.y;
 			pos.z -= precalc->cam_pos.z;
 			// test de visibilité 
-			if (pos.y >= cam->distance_ecran 
-				&& (pos.x + sprites->sprites[i].echelle*sprites->sprites[i].source.w/2)*cam->distance_ecran - pos.y*precalc->min_l >= 0
-				&& pos.y*precalc->max_l - (pos.x - sprites->sprites[i].echelle*sprites->sprites[i].source.w/2)*cam->distance_ecran >= 0
-				&& (pos.z + sprites->sprites[i].echelle*sprites->sprites[i].source.h/2)*cam->distance_ecran - pos.y*precalc->min_h >= 0
-				&& pos.y*precalc->max_h - (pos.z - sprites->sprites[i].echelle*sprites->sprites[i].source.h/2)*cam->distance_ecran >= 0) 
+			if (pos.y >= cam->distance_ecran
+				&& (pos.x + sprites->sprites[i].echelle*sprites->sprites[i].source.w*cam->distance_ecran/(2.*pos.y))*cam->distance_ecran - pos.y*precalc->min_l >= 0.
+				&& pos.y*precalc->max_l - (pos.x - sprites->sprites[i].echelle*sprites->sprites[i].source.w*cam->distance_ecran/(2.*pos.y))*cam->distance_ecran >= 0.
+				&& (pos.z + sprites->sprites[i].echelle*sprites->sprites[i].source.h*cam->distance_ecran/(2.*pos.y))*cam->distance_ecran - pos.y*precalc->min_h >= 0.
+				&& pos.y*precalc->max_h - (pos.z - sprites->sprites[i].echelle*sprites->sprites[i].source.h*cam->distance_ecran/(2.*pos.y))*cam->distance_ecran >= 0.)
 			{
+				// calcul des information nécessaires au rendercopy
 				cam->tableau_z[n].index = n;
-				cam->tableau_z[n].Z = pos.z;
-				cam->tableau_p[n].sprite = &sprites->sprites[i];
-				// TODO : calculer directement les bonnes coordonnées
-				cam->tableau_p[n].dest;
+				cam->tableau_z[n].Z = pos.y;
+				cam->tableau_p[n].texture = sprites->sprites[i].texture;
+				cam->tableau_p[n].source = sprites->sprites[i].source;
+				cam->tableau_p[n].dest.w = sprites->sprites[i].echelle*sprites->sprites[i].source.w*cam->distance_ecran/pos.y;
+				cam->tableau_p[n].dest.h = sprites->sprites[i].echelle*sprites->sprites[i].source.h*cam->distance_ecran/pos.y;
+				cam->tableau_p[n].dest.x = (pos.x*cam->distance_ecran/pos.y - precalc->min_l)*precalc->xcoef - cam->tableau_p[n].dest.w/2.;
+				cam->tableau_p[n].dest.y = (pos.z*cam->distance_ecran/pos.y - precalc->max_h)*precalc->ycoef - cam->tableau_p[n].dest.h/2.;
 				n++;
 			}
 		}
@@ -46,8 +111,12 @@ void AFFICHAGE_SPRITES(const TABLEAU_SPRITES* sprites, const CAMERA* cam, const 
 	}
 
 	// tri de tous les Z_SPRITEs (suivant Z :)
+	TRI_INSERTION(cam->tableau_z,0,n);
 
 	// parcours des Z_SPRITEs et affichage des sprites correspondants
+	for (unsigned int i=0; i<n; ++i) {
+		SDL_RenderCopy(cam->renderer,cam->tableau_p[cam->tableau_z[i].index].texture,&cam->tableau_p[cam->tableau_z[i].index].source,&cam->tableau_p[cam->tableau_z[i].index].dest);
+	}
 
 }
 
@@ -117,10 +186,10 @@ void AFFICHAGE_CAMERA(const CAMERA* cam, const SCENE* scene) {
 	// matrice de rotation caméra (sans le roulis)
 	PRECALCULS precalc;
 	QUATERNION q1,q2;
-	VECTEUR3D axe = {1,0,0};
-	CALCUL_QUATERNION(cam->latitude,&axe,&q1);
-	axe.x = axe.y = 0; axe.z = 1;
-	CALCUL_QUATERNION(cam->longitude,&axe,&q2);
+	VECTEUR3D axe = {0.,0.,1.};
+	CALCUL_QUATERNION(cam->longitude,&axe,&q1);
+	axe.x = 1.; axe.z = 0.;
+	CALCUL_QUATERNION(cam->latitude,&axe,&q2);
 	MULT_QUATERNIONS_EN_PLACE_GAUCHE(&q1,&q2);
 	CALCUL_BASE_3D(&q1,&echelle,&precalc.i,&precalc.j,&precalc.k);
 	// position caméra
@@ -131,6 +200,8 @@ void AFFICHAGE_CAMERA(const CAMERA* cam, const SCENE* scene) {
 	precalc.max_l = max_l;
 	precalc.min_h = min_h;
 	precalc.max_h = max_h;
+	precalc.xcoef = src_rect.w/(max_l - min_l);
+	precalc.ycoef = src_rect.h/(min_h - max_h);
 
 	// clear l'écran
 	SDL_SetRenderTarget(cam->renderer, cam->tmp_cible);
@@ -171,8 +242,8 @@ void AFFICHAGE_CAMERA(const CAMERA* cam, const SCENE* scene) {
 				dst.h = ptr->source.h*ptr->echelle;
 				VECTEUR2D v = {ptr->position.x - cam->position.x, ptr->position.y - cam->position.y};
 				APPLIQUER_EN_PLACE_BASE_INVERSE_2D(&v,&i,&j);
-				dst.x = TMP_TEXT_W/2. + v.x - centre_plan.x - dst.w/2;
-				dst.y = TMP_TEXT_H - v.y + centre_plan.y - dst.h/2; // SDL fait les choses à l'envers, de haut en bas : ici on en tient compte
+				dst.x = TMP_TEXT_W/2. + v.x - centre_plan.x - dst.w/2.;
+				dst.y = TMP_TEXT_H - v.y + centre_plan.y - dst.h/2.; // SDL fait les choses à l'envers, de haut en bas : ici on en tient compte
 				SDL_SetRenderTarget(cam->renderer, cam->tmp_text);
 				SDL_RenderClear(cam->renderer);
 				SDL_RenderCopyEx(cam->renderer,ptr->texture,&ptr->source,&dst,RAD2DEG(cam->longitude - ptr->rotation),NULL,SDL_FLIP_NONE);
@@ -205,7 +276,7 @@ void AFFICHAGE_CAMERA(const CAMERA* cam, const SCENE* scene) {
 	}
 
 	ptr = scene->tout_en_bas;
-	TABLEAU_SPRITES* prev_sprites = scene->sprites_tout_en_bas; // pour les sprites qui sont en dessous de tous les plans
+	TABLEAU_SPRITES* prev_sprites = scene->sprites_tout_en_bas;
 	if (bas_ecran_z < 0) {
 		while ((ptr != NULL) && (ptr->position.z < cam->position.z)) {
 			AFFICHAGE_SPRITES(prev_sprites, cam, &precalc);
@@ -238,8 +309,8 @@ void AFFICHAGE_CAMERA(const CAMERA* cam, const SCENE* scene) {
 				dst.h = ptr->source.h*ptr->echelle;
 				VECTEUR2D v = {ptr->position.x - cam->position.x, ptr->position.y - cam->position.y};
 				APPLIQUER_EN_PLACE_BASE_INVERSE_2D(&v,&i,&j);
-				dst.x = TMP_TEXT_W/2. + v.x - centre_plan.x - dst.w/2;
-				dst.y = TMP_TEXT_H - v.y + centre_plan.y - dst.h/2; // SDL fait les choses à l'envers, de haut en bas : ici on en tient compte
+				dst.x = TMP_TEXT_W/2. + v.x - centre_plan.x - dst.w/2.;
+				dst.y = TMP_TEXT_H - v.y + centre_plan.y - dst.h/2.; // SDL fait les choses à l'envers, de haut en bas : ici on en tient compte
 				SDL_SetRenderTarget(cam->renderer, cam->tmp_text);
 				SDL_RenderClear(cam->renderer);
 				SDL_RenderCopyEx(cam->renderer,ptr->texture,&ptr->source,&dst,RAD2DEG(cam->longitude - ptr->rotation),NULL,SDL_FLIP_NONE);
@@ -277,9 +348,9 @@ void AFFICHAGE_CAMERA(const CAMERA* cam, const SCENE* scene) {
 			ptr = ptr->au_dessus;
 		}
 	}
-	AFFICHAGE_SPRITES(prev_sprites, cam, &precalc); 
+	AFFICHAGE_SPRITES(prev_sprites, cam, &precalc);
 
-	while ((ptr != NULL) && (ptr->position.z == cam->position.z)) { // on affiche les plans qui sont à la même hauteur que la caméra
+	while ((ptr != NULL) && (ptr->position.z == cam->position.z)) {
 		AFFICHAGE_SPRITES(ptr->sprites_au_dessus, cam, &precalc);
 		ptr = ptr->au_dessus;
 	}
