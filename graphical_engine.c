@@ -78,8 +78,9 @@ void AFFICHAGE_SPRITES(const TABLEAU_SPRITES* sprites, const CAMERA* cam, const 
 	unsigned int n = 0;
 
 	// projection de tous les sprites
-	while (sprites != NULL) {
-		for (unsigned int i=0; i<sprites->N; ++i) {
+	while (sprites != NULL && n < cam->N_MAX) {
+		unsigned int i_final = cam->N_MAX - n >= sprites->N ? sprites->N : cam->N_MAX - n;
+		for (unsigned int i=0; i<i_final; ++i) {
 			VECTEUR3D pos;
 			// calcul de la position du sprite dans l'espace caméra
 			pos = sprites->sprites[i].position;
