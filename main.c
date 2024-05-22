@@ -101,7 +101,7 @@ int main() {
     cam.position.y = 0.;
     cam.position.z = 50;
     cam.longitude = 0.;
-    cam.latitude = 0.;
+    cam.latitude = -1.;
     cam.roulis = 0.;
     cam.renderer = renderer;
     cam.tmp_text = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_TARGET,4000,4000);
@@ -140,6 +140,8 @@ int main() {
         sprite[i].position.z = 20.;
         sprite[i].position.x = (15*i)%500;
         sprite[i].position.y = (10*i*i)%500;
+        sprite[i].speed = 0;
+        sprite[i].max_speed = 4;
     }
 
     TABLEAU_SPRITES tab_sprites;
@@ -148,7 +150,7 @@ int main() {
     tab_sprites.sprites = sprite;
     plan.sprites_au_dessus = &tab_sprites;
 
-    VECTEUR2D deplacement_zs,deplacement_qd;
+    VECTEUR2D deplacement_zs,deplacement_qd,deplacement_zs2,deplacement_qd2;
     float speed_coef = 5.;
 
     /*Car player_car;
@@ -159,8 +161,8 @@ int main() {
     player_car.rect.x = (int)player_car.x;
     player_car.rect.y = (int)player_car.y;*/
 
-    enum { UP = 0, DOWN, LEFT, RIGHT, Z, Q, S, D, A, E, W, X };
-    short int INPUT[12] = { 0 };
+    enum { UP = 0, DOWN, LEFT, RIGHT, Z, Q, S, D, A, E, W, X, O, K, L, M}; 
+    short int INPUT[16] = { 0 };
     SDL_Event EVENT;
     int loop = 1;
     long long temps_frame,temps_frame2;
@@ -373,6 +375,18 @@ int main() {
                         case SDLK_x:
                             INPUT[X] = 1;
                             break;
+                        case SDLK_o:
+                            INPUT[O] = 1;
+                            break;
+                        case SDLK_k:
+                            INPUT[K] = 1;
+                            break;
+                        case SDLK_l:
+                            INPUT[L] = 1;
+                            break;
+                        case SDLK_m:
+                            INPUT[M] = 1;
+                            break;
                         default:
                             break;
                     }
@@ -414,6 +428,18 @@ int main() {
                         case SDLK_x:
                             INPUT[X] = 0;
                             break;
+                        case SDLK_o:
+                            INPUT[O] = 0;
+                            break;
+                        case SDLK_k:
+                            INPUT[K] = 0;
+                            break;
+                        case SDLK_l:
+                            INPUT[L] = 0;
+                            break;
+                        case SDLK_m:
+                            INPUT[M] = 0;
+                            break;
                         default:
                             break;
                     }
@@ -426,19 +452,38 @@ int main() {
             if (INPUT[RIGHT]) cam.longitude -= 0.05;
             if (INPUT[W]) plan.rotation += 0.05;
             if (INPUT[X]) plan.rotation -= 0.05;
-            cam.latitude = cam.latitude > M_PI / 2 ? M_PI / 2 : cam.latitude;
-            cam.latitude = cam.latitude < -M_PI / 2 ? -M_PI / 2 : cam.latitude;
+            cam.latitude = cam.latitude > M_PI / 2 ? M_PI / 2 : cam.latitude; //limite la latitude
+            cam.latitude = cam.latitude < -M_PI / 2 ? -M_PI / 2 : cam.latitude; //limite la latitude
             sincosf(cam.longitude,&deplacement_qd.y,&deplacement_qd.x);
-            deplacement_qd.x *= speed_coef;
+            deplacement_qd.x *= speed_coef;     //déplacement de la caméra
             deplacement_qd.y *= speed_coef;
+           
             deplacement_zs.x = -deplacement_qd.y;
             deplacement_zs.y = deplacement_qd.x;
+
+            deplacement_qd2.x = deplacement_qd.x;
+            deplacement_qd2.y = deplacement_qd.y;
+            deplacement_qd2.x *= sprite[0].speed/2; //déplacement du joueur
+            deplacement_qd2.y *= sprite[0].speed/2;
+
+            deplacement_zs2.x = -deplacement_qd2.y;
+            deplacement_zs2.y = deplacement_qd2.x;
+
+
             if (INPUT[Z]) {cam.position.x += deplacement_zs.x; cam.position.y += deplacement_zs.y;}
             if (INPUT[S]) {cam.position.x -= deplacement_zs.x; cam.position.y -= deplacement_zs.y;}
             if (INPUT[D]) {cam.position.x += deplacement_qd.x; cam.position.y += deplacement_qd.y;}
             if (INPUT[Q]) {cam.position.x -= deplacement_qd.x; cam.position.y -= deplacement_qd.y;}
             if (INPUT[E]) cam.position.z += speed_coef;
             if (INPUT[A]) cam.position.z -= speed_coef;
+
+            cam.position.x += deplacement_zs2.x; cam.position.y += deplacement_zs2.y; //déplacements du joueur synchronisé avec la caméra
+            sprite[0].position.x += deplacement_zs2.x;sprite[0].position.y += deplacement_zs2.y;
+
+            if (INPUT[O] && sprite[0].speed < sprite[0].max_speed && (SDL_GetTicks() - temps_ecoule_fps >= 995)) {sprite[0].speed += 1;printf("Speed up\n");}
+            if (INPUT[L] && sprite[0].speed > 0 && (SDL_GetTicks() - temps_ecoule_fps >= 995)) {sprite[0].speed -= 1;}
+            if (INPUT[M]) {cam.longitude -= 0.02;}
+            if (INPUT[K]) {cam.longitude += 0.02;}
 
             SDL_RenderClear(renderer);
             AFFICHAGE_CAMERA(&cam, &scene);

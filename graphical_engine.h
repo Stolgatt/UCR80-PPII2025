@@ -9,6 +9,8 @@
 
 struct SPRITE {
 
+	long unsigned int speed;
+	long unsigned int max_speed;
 	SDL_Texture* texture;
 	// float rotation; // pas sûr que ça sera utile...
 	float echelle;
