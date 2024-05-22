@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include "engine_common.h"
 #include "graphical_engine.h"
+#include "physical_engine.h"
 
 #define TX 1920
 #define TY 1080
