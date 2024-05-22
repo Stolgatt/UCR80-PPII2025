@@ -1,6 +1,6 @@
 #include "engine_common.h"
 
-static void CALCUL_SQUELETTE_2D_FCT_AUXILIAIRE(OS2D* os) {
+static void CALCUL_SQUELETTE_2D_FCT_AUXILIAIRE(OS2D* os) { // Fonction auxiliaire pour CALCUL_SQUELETTE_2D
 	for (int i=0; i<os->nombre_enfants; ++i) {
 		APPLIQUER_BASE_2D_M((os->enfants)[i].position, (os->enfants)[i].position_finale, os->i_final, os->j_final);
 		(os->enfants)[i].position_finale.x += os->position_finale.x;
@@ -11,7 +11,7 @@ static void CALCUL_SQUELETTE_2D_FCT_AUXILIAIRE(OS2D* os) {
 	}
 }
 
-void CALCUL_SQUELETTE_2D(OS2D* os_racine) {
+void CALCUL_SQUELETTE_2D(OS2D* os_racine) { // Calcule les positions finales des os de l'arbre os_racine
 	os_racine->position_finale = os_racine->position;
 	os_racine->i_final = os_racine->i;
 	os_racine->j_final = os_racine->j;
@@ -21,7 +21,7 @@ void CALCUL_SQUELETTE_2D(OS2D* os_racine) {
 
 
 
-static void CALCUL_SQUELETTE_3D_FCT_AUXILIAIRE(OS3D* os) {
+static void CALCUL_SQUELETTE_3D_FCT_AUXILIAIRE(OS3D* os) { // Fonction auxiliaire pour CALCUL_SQUELETTE_3D
 	for (int i=0; i<os->nombre_enfants; ++i) {
 		APPLIQUER_BASE_3D_M((os->enfants)[i].position, (os->enfants)[i].position_finale, os->i_final, os->j_final, os->k_final);
 		(os->enfants)[i].position_finale.x += os->position_finale.x;
@@ -34,7 +34,7 @@ static void CALCUL_SQUELETTE_3D_FCT_AUXILIAIRE(OS3D* os) {
 	}
 }
 
-void CALCUL_SQUELETTE_3D(OS3D* os_racine) {
+void CALCUL_SQUELETTE_3D(OS3D* os_racine) { // Calcule les positions finales des os de l'arbre os_racine
 	os_racine->position_finale = os_racine->position;
 	os_racine->i_final = os_racine->i;
 	os_racine->j_final = os_racine->j;

@@ -1,6 +1,10 @@
-# [NOM_DU_PROJET]
+# PP2I-2 - Jeu vidéo en C
 
-Bienvenue sur le repository de [NOM_DU_PROJET].
+Bienvenue sur le repository de PP2I-2 - Jeu vidéo en C.
+
+## Nom du Jeu
+
+UltimateCarRacing80 : retour vers le passé
 
 ## Installation
 
