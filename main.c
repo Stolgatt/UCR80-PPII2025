@@ -480,8 +480,8 @@ int main() {
             cam.position.x += deplacement_zs2.x; cam.position.y += deplacement_zs2.y; //déplacements du joueur synchronisé avec la caméra
             sprite[0].position.x += deplacement_zs2.x;sprite[0].position.y += deplacement_zs2.y;
 
-            if (INPUT[O] && sprite[0].speed < sprite[0].max_speed && (SDL_GetTicks() - temps_ecoule_fps >= 995)) {sprite[0].speed += 1;printf("Speed up\n");}
-            if (INPUT[L] && sprite[0].speed > 0 && (SDL_GetTicks() - temps_ecoule_fps >= 995)) {sprite[0].speed -= 1;}
+            if (INPUT[O] && sprite[0].speed < sprite[0].max_speed && (SDL_GetTicks() - temps_ecoule_fps >= 990)) {sprite[0].speed += 1;printf("Speed up\n");}
+            if (INPUT[L] && sprite[0].speed > 0 && (SDL_GetTicks() - temps_ecoule_fps >= 990)) {sprite[0].speed -= 1;}
             if (INPUT[M]) {cam.longitude -= 0.02;}
             if (INPUT[K]) {cam.longitude += 0.02;}
 
