@@ -296,7 +296,8 @@ int main() {
                             else if EST_DANS_CLICKZONE(EVENT.button,clickZonePauseMenu) {
                                 choix_page_menu(3,0,&menu_source);
                                 menu_texture = page_accueil;
-                                MENU = ACCUEIL; }
+                                MENU = ACCUEIL; 
+                                JEU_TOURNE = 0; }
                             else
                                 choix_page_menu(2,0,&menu_source);
                             break;
