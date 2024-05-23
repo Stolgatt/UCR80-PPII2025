@@ -45,6 +45,12 @@ int main() {
     tmp_surface = SDL_LoadBMP("assets/menu/curseur.bmp");
     SDL_Texture* curseur = SDL_CreateTextureFromSurface(renderer,tmp_surface);
     SDL_FreeSurface(tmp_surface);
+    tmp_surface = SDL_LoadBMP("assets/menu/chargement.bmp");
+    SDL_Texture* chargement = SDL_CreateTextureFromSurface(renderer,tmp_surface);
+    SDL_FreeSurface(tmp_surface);
+    tmp_surface = SDL_LoadBMP("assets/menu/titre.bmp");
+    SDL_Texture* titre = SDL_CreateTextureFromSurface(renderer,tmp_surface);
+    SDL_FreeSurface(tmp_surface);
     // pour l'interactivité avec les boutons du menu
 #define EST_DANS_CLICKZONE(chose,clickZone) (chose.x >= clickZone.x && chose.y >= clickZone.y && chose.x <= clickZone.w && chose.y <= clickZone.h)
     // page accueil
@@ -85,6 +91,9 @@ int main() {
     SDL_Texture* menu_texture = page_accueil;
     SDL_Rect curseur_dest;
     SDL_QueryTexture(curseur,NULL,NULL,&curseur_dest.w,&curseur_dest.h);
+
+    SDL_Rect loading_source;
+    SDL_Rect titre_source;
 
     tmp_surface = SDL_LoadBMP("assets/maps/map.bmp");
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, tmp_surface);
@@ -171,10 +180,21 @@ int main() {
     long long temps_ecoule_fps = SDL_GetTicks();
 #endif
 
+
+    //Ecran titre
+    for (int i = 0; i <= 255; i+=5){
+        choix_page_menu(1, 0, &titre_source);
+        SDL_SetTextureAlphaMod(titre, i);
+        SDL_RenderCopy(renderer, titre, &titre_source, &menu_dest);
+        SDL_RenderPresent(renderer);
+        SDL_Delay(50);
+    
+        //SDL_SetTextureAlphaMod(SDL_Texture, ValeurAlpha);
+    }
     while (loop) {
         // gestion des fps (partie 1)
         temps_frame = SDL_GetTicks();
-
+        
         if (MENU < JEU) {
         // gestion des différents menus
             while (SDL_PollEvent(&EVENT) != 0) {
@@ -184,8 +204,9 @@ int main() {
                 else if (EVENT.type == SDL_MOUSEBUTTONDOWN) {
                     switch (MENU) {
                         case ACCUEIL:
-                            if EST_DANS_CLICKZONE(EVENT.button,clickZoneStart)
+                            if EST_DANS_CLICKZONE(EVENT.button,clickZoneStart){
                                 choix_page_menu(3, 1, &menu_source);
+                            }
                             else if EST_DANS_CLICKZONE(EVENT.button,clickZoneSelectMap)
                                 choix_page_menu(3, 2, &menu_source);
                             else if EST_DANS_CLICKZONE(EVENT.button,clickZoneLeaderboard)
@@ -240,6 +261,32 @@ int main() {
                     switch (MENU) {
                         case ACCUEIL:
                             if EST_DANS_CLICKZONE(EVENT.button,clickZoneStart) {
+                                //Loading screen
+                                for (int i = 0; i <= 10; i++){
+                                    choix_page_menu(4, 0, &loading_source);
+                                    SDL_RenderCopy(renderer, chargement, &loading_source, &menu_dest);
+                                    SDL_RenderPresent(renderer);
+                                    SDL_Delay(100);
+
+                                    choix_page_menu(4, 1, &loading_source);
+                                    SDL_RenderCopy(renderer, chargement, &loading_source, &menu_dest);
+                                    SDL_RenderPresent(renderer);
+                                    SDL_Delay(100);
+                                    
+                                    choix_page_menu(4, 2, &loading_source);
+                                    SDL_RenderCopy(renderer, chargement, &loading_source, &menu_dest);
+                                    SDL_RenderPresent(renderer);
+                                    SDL_Delay(100);
+
+                                    choix_page_menu(4, 3, &loading_source);
+                                    SDL_RenderCopy(renderer, chargement, &loading_source, &menu_dest);
+                                    SDL_RenderPresent(renderer);
+                                    SDL_Delay(100);
+                                    // SDL_RenderCopy la bonne zone de l'image
+                                    // SDL_RenderPresent (pour updater la fenetre)
+                                    // SDL_Delay(le temps nécessaire)
+                                    // répéter
+                                }
                                 MENU = JEU;
                                 JEU_TOURNE = 1;
                                 for (unsigned int i=0; i<sizeof(INPUT)/sizeof(short int); ++i) INPUT[i] = 0; }
