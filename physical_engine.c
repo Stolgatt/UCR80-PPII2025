@@ -1,7 +1,4 @@
 #include "physical_engine.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include "engine_common.h"
 
 SEGMENT2D CREA_SEGMENT_2D(int x1, int x2, int y1, int y2) {
 	SEGMENT2D res;
