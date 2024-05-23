@@ -33,35 +33,27 @@ struct VOITURE {
 };
 typedef struct VOITURE VOITURE;
 
-// il faut plus d'informations que juste celles contenues dans un segment2D
-struct SEGMENT_HITBOX_MAP {
-
-	SEGMENT2D segment;
-	VECTEUR2D origine;
-
-	VECTEUR2D normale; // vecteur unitaire pointant vers l'extérieur du segment
-};
-typedef struct SEGMENT_HITBOX_MAP SEGMENT_HITBOX_MAP;
-
 struct CASE_GRILLE {
 
 	VOITURE* liste_voitures;
-	SEGMENT_HITBOX_MAP* tableau_ptr_segments[]; // un tableau de pointeurs
+	unsigned int nb_segments;
+	SEGMENT2D** tableau_ptr_segments; // un tableau de pointeurs (vers des segments)
+	VECTEUR2D** tableau_ptr_points; // un tableau de pointeurs (vers des origines de segments)
 
 };
 typedef struct CASE_GRILLE CASE_GRILLE;
 
-struct monde_physique {
+struct MONDE_PHYSIQUE {
 
 	// les engins rutilants
-	VOITURE voiture_joueur;
+	VOITURE joueur;
 	VOITURE* adversaires;
 
 	// partitionnement de l'espace de jeu en une grille
 	unsigned int nb_lignes;
 	unsigned int nb_colonnes;
-	float largeur_totale;
-	float hauteur_totale;
+	float l;
+	float h;
 	// la grille en question (stocké sous la forme d'une succession de lignes : grille[ligne][colonne] = grille[ligne*nb_colonnes + colonne])
 	CASE_GRILLE* grille;
 
@@ -70,10 +62,41 @@ struct monde_physique {
 	SCENE scene;
 
 };
-typedef struct monde_physique monde_physique;
+typedef struct MONDE_PHYSIQUE MONDE_PHYSIQUE;
+
+enum { UP = 0, DOWN, LEFT, RIGHT, Z, Q, S, D, A, E, W, X, O, K, L, M};
+
+// TODO : définir deux fonctions inline, une enlevant les références d'une voiture dans la grille, et l'autre les ajoutant (en fct de voiture.position et voiture.min/max_x/y)
+
+inline short int Test_Collision_Voitures(VOITURE* v1, VOITURE* v2, VECTEUR2D* direction) { // play ultrakill
+	for (unsigned int i=0; i<v1->nombre_disques; ++i) {
+		for (unsigned int j=0; j<v2->nombre_disques; ++j) {
+			if INTERSECTION_DISQUES(v1->tableau_centres[i].x,v1->tableau_centres[i].y,v1->tableau_rayons[i], v2->tableau_centres[j].x,v2->tableau_centres[j].y,v2->tableau_rayons[j]) {
+				direction->x = v2->tableau_centres[j].x - v1->tableau_centres[i].x;
+				direction->y = v2->tableau_centres[j].y - v1->tableau_centres[i].y;
+				NORMALISER_VECTEUR2D(direction,direction);
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+inline VECTEUR2D Calcul_reflexion(VECTEUR2D direction_voulue, SEGMENT2D* segment) {
+    VECTEUR2D vecteur_normal;
+    vecteur_normal.x = -segment->direction.y;
+    vecteur_normal.y = segment->direction.x;
+    float produit_scalaire = direction_voulue.x*vecteur_normal.x + direction_voulue.y*vecteur_normal.y;
+    VECTEUR2D reflexion;
+    reflexion.x = direction_voulue.x - 2*produit_scalaire*vecteur_normal.x;
+    reflexion.y = direction_voulue.y - 2*produit_scalaire*vecteur_normal.y;
+    return reflexion;
+}
+
+void Charger_Monde_Physique(MONDE_PHYSIQUE* monde); // à modifier potentiellement (rajouter une structure qui contient les informations relatives à un niveau et la passer en argument)
+void Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* INPUT, const float dt);
 
 SEGMENT2D CREA_SEGMENT_2D(int x1, int x2, int y1, int y2);
-VECTEUR2D Calcul_reflexion(VECTEUR2D direction_voulue, SEGMENT2D* segment);
 VECTEUR2D Calcul_collisions(VECTEUR2D direction_voulue,const float* rayon, const VECTEUR2D* position_disque);
 
 #endif

@@ -1,5 +1,39 @@
 #include "physical_engine.h"
 
+void Charger_Monde_Physique(MONDE_PHYSIQUE* monde) {
+	// 
+}
+
+void Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* INPUT, const float dt) {
+
+	// déterminer le mouvement désiré pour le joueur (en fct des inputs)
+	VECTEUR2D dv; // = dt * ...
+	// parcours des cases de la grille correspondantes (au joueur)
+	for (unsigned int col=(monde->joueur.position.x+monde->joueur.min_x)*monde->nb_colonnes/monde->l; col<(monde->joueur.position.x+monde->joueur.max_x)*monde->nb_colonnes/monde->l; ++col) {
+		for (unsigned int lig=(monde->joueur.position.y+monde->joueur.min_y)*monde->nb_lignes/monde->h; lig<(monde->joueur.position.y+monde->joueur.max_y)*monde->nb_lignes/monde->h; ++lig) {
+			VOITURE* ptr;
+			float pdt_scalaire;
+			VECTEUR2D direction_collision;
+			// parcours des voitures
+			ptr = grille[lig*monde->nb_colonnes + col].liste_voitures;
+			while (ptr != NULL) {
+				if (ptr != &monde->joueur && Test_Collision_Voitures(&monde->joueur,ptr,&direction_collision)) {
+					pdt_scalaire = PDT_SCALAIRE_2D_M(dv,direction_collision);
+					pdt_scalaire = pdt_scalaire < 0 ? 0 : pdt_scalaire;
+					dv.x -= pdt_scalaire*direction_collision.x;
+					dv.y -= pdt_scalaire*direction_collision.y;
+				}
+				ptr = ptr->voiture_suivante;
+			}
+		}
+	}
+
+
+
+	// parcours des voitures et même physique que pour le joueur
+
+}
+
 SEGMENT2D CREA_SEGMENT_2D(int x1, int x2, int y1, int y2) {
 	SEGMENT2D res;
 	VECTEUR2D dir;
@@ -9,17 +43,6 @@ SEGMENT2D CREA_SEGMENT_2D(int x1, int x2, int y1, int y2) {
 	res.direction = dir;
 	res.longueur = norme;
 	return res;
-}
-
-VECTEUR2D Calcul_reflexion(VECTEUR2D direction_voulue, SEGMENT2D* segment) {
-    VECTEUR2D vecteur_normal;
-    vecteur_normal.x = -segment->direction.y;
-    vecteur_normal.y = segment->direction.x;
-    float produit_scalaire = direction_voulue.x*vecteur_normal.x + direction_voulue.y*vecteur_normal.y;
-    VECTEUR2D reflexion;
-    reflexion.x = direction_voulue.x - 2*produit_scalaire*vecteur_normal.x;
-    reflexion.y = direction_voulue.y - 2*produit_scalaire*vecteur_normal.y;
-    return reflexion;
 }
     
 VECTEUR2D Calcul_collisions(VECTEUR2D direction_voulue,const float* rayon, const VECTEUR2D* position_disque) {

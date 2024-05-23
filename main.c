@@ -46,7 +46,6 @@ int main() {
     SDL_Texture* curseur = SDL_CreateTextureFromSurface(renderer,tmp_surface);
     SDL_FreeSurface(tmp_surface);
     // pour l'interactivité avec les boutons du menu
-#define EST_DANS_CLICKZONE(chose,clickZone) (chose.x >= clickZone.x && chose.y >= clickZone.y && chose.x <= clickZone.w && chose.y <= clickZone.h)
     // page accueil
     SDL_Rect clickZoneStart = { .x = 827, .y = 138, .w = 1115, .h = 271 };
     SDL_Rect clickZoneSelectMap = {719,304,1219,438};
@@ -160,8 +159,7 @@ int main() {
     SDL_QueryTexture(car_texture, NULL, NULL, &player_car.rect.w, &player_car.rect.h);
     player_car.rect.x = (int)player_car.x;
     player_car.rect.y = (int)player_car.y;*/
-
-    enum { UP = 0, DOWN, LEFT, RIGHT, Z, Q, S, D, A, E, W, X, O, K, L, M}; 
+ 
     short int INPUT[16] = { 0 };
     SDL_Event EVENT;
     int loop = 1;
