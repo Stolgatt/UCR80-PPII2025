@@ -140,8 +140,8 @@ int main() {
         sprite[i].position.z = 20.;
         sprite[i].position.x = (15*i)%500;
         sprite[i].position.y = (10*i*i)%500;
-        /*sprite[i].speed = 0;
-        sprite[i].max_speed = 4;*/
+        sprite[i].speed = 0;
+        sprite[i].max_speed = 4;
     }
 
     TABLEAU_SPRITES tab_sprites;
@@ -150,7 +150,7 @@ int main() {
     tab_sprites.sprites = sprite;
     plan.sprites_au_dessus = &tab_sprites;
 
-    VECTEUR2D deplacement_zs,deplacement_qd;//,deplacement_zs2,deplacement_qd2;
+    VECTEUR2D deplacement_zs,deplacement_qd,deplacement_zs2,deplacement_qd2;
     float speed_coef = 5.;
 
     /*Car player_car;
@@ -461,13 +461,13 @@ int main() {
             deplacement_zs.x = -deplacement_qd.y;
             deplacement_zs.y = deplacement_qd.x;
 
-            /*deplacement_qd2.x = deplacement_qd.x;
+            deplacement_qd2.x = deplacement_qd.x;
             deplacement_qd2.y = deplacement_qd.y;
             deplacement_qd2.x *= sprite[0].speed/2; //déplacement du joueur
             deplacement_qd2.y *= sprite[0].speed/2;
 
             deplacement_zs2.x = -deplacement_qd2.y;
-            deplacement_zs2.y = deplacement_qd2.x;*/
+            deplacement_zs2.y = deplacement_qd2.x;
 
 
             if (INPUT[Z]) {cam.position.x += deplacement_zs.x; cam.position.y += deplacement_zs.y;}
@@ -477,13 +477,13 @@ int main() {
             if (INPUT[E]) cam.position.z += speed_coef;
             if (INPUT[A]) cam.position.z -= speed_coef;
 
-            /* cam.position.x += deplacement_zs2.x; cam.position.y += deplacement_zs2.y; //déplacements du joueur synchronisé avec la caméra
-            sprite[0].position.x += deplacement_zs2.x;sprite[0].position.y += deplacement_zs2.y; */
+            cam.position.x += deplacement_zs2.x; cam.position.y += deplacement_zs2.y; //déplacements du joueur synchronisé avec la caméra
+            sprite[0].position.x += deplacement_zs2.x;sprite[0].position.y += deplacement_zs2.y;
 
-            /*if (INPUT[O] && sprite[0].speed < sprite[0].max_speed && (SDL_GetTicks() - temps_ecoule_fps >= 995)) {sprite[0].speed += 1;printf("Speed up\n");}
-            if (INPUT[L] && sprite[0].speed > 0 && (SDL_GetTicks() - temps_ecoule_fps >= 995)) {sprite[0].speed -= 1;}
+            if (INPUT[O] && sprite[0].speed < sprite[0].max_speed && (SDL_GetTicks() - temps_ecoule_fps >= 990)) {sprite[0].speed += 1;printf("Speed up\n");}
+            if (INPUT[L] && sprite[0].speed > 0 && (SDL_GetTicks() - temps_ecoule_fps >= 990)) {sprite[0].speed -= 1;}
             if (INPUT[M]) {cam.longitude -= 0.02;}
-            if (INPUT[K]) {cam.longitude += 0.02;} */
+            if (INPUT[K]) {cam.longitude += 0.02;}
 
             SDL_RenderClear(renderer);
             AFFICHAGE_CAMERA(&cam, &scene);
