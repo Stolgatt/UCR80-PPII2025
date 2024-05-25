@@ -94,8 +94,12 @@ int main() {
     SDL_Rect loading_source;
     SDL_Rect titre_source;
 
-    tmp_surface = SDL_LoadBMP("assets/maps/map.bmp");
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, tmp_surface);
+    //Chargement des maps et véhicules
+    tmp_surface = SDL_LoadBMP("assets/maps/mapferme.bmp");
+    SDL_Texture* mapferme_texture = SDL_CreateTextureFromSurface(renderer, tmp_surface);
+    SDL_FreeSurface(tmp_surface);
+    tmp_surface = SDL_LoadBMP("assets/maps/mapneon.bmp");
+    SDL_Texture* mapneon_texture = SDL_CreateTextureFromSurface(renderer, tmp_surface);
     SDL_FreeSurface(tmp_surface);
     tmp_surface = SDL_LoadBMP("assets/sprites/delorean.bmp");
     SDL_Texture* car_texture = SDL_CreateTextureFromSurface(renderer, tmp_surface);
@@ -124,15 +128,15 @@ int main() {
     cam.offset_horizontal = cam.offset_vertical = 0.;
 
     PLAN_HORIZONTAL plan;
-    plan.texture = texture;
     plan.rotation = 0.;
+    // plan.texture = mapferme_texture;
     plan.echelle = 1.;
     plan.position.x = plan.position.z = 0.;
     plan.position.y = 0;
     plan.au_dessus = plan.en_dessous = NULL;
     plan.source.x = plan.source.y = 0;
-    plan.source.w = 1600;
-    plan.source.h = 3000;
+    // plan.source.w = 1600;
+    // plan.source.h = 3000;
 
     SCENE scene;
     scene.sprites_tout_en_bas = NULL;
@@ -185,7 +189,7 @@ int main() {
         SDL_SetTextureAlphaMod(titre, i);
         SDL_RenderCopy(renderer, titre, &titre_source, &menu_dest);
         SDL_RenderPresent(renderer);
-        SDL_Delay(50);
+        SDL_Delay(70);
     
         //SDL_SetTextureAlphaMod(SDL_Texture, ValeurAlpha);
     }
@@ -284,6 +288,16 @@ int main() {
                                     // SDL_RenderPresent (pour updater la fenetre)
                                     // SDL_Delay(le temps nécessaire)
                                     // répéter
+                                }
+                                if (SELECTED == MAP2){
+                                    plan.texture = mapneon_texture;
+                                    plan.source.w = 5000;
+                                    plan.source.h = 5000;
+                                }   
+                                else{
+                                    plan.texture = mapferme_texture;
+                                    plan.source.w = 1600;
+                                    plan.source.h = 3000;
                                 }
                                 MENU = JEU;
                                 JEU_TOURNE = 1;
@@ -555,7 +569,8 @@ int main() {
     SDL_DestroyTexture(options);
     SDL_DestroyTexture(pause);
     SDL_DestroyTexture(curseur);
-    SDL_DestroyTexture(texture);
+    SDL_DestroyTexture(mapferme_texture);
+    SDL_DestroyTexture(mapneon_texture);
     SDL_DestroyTexture(car_texture);
     SDL_DestroyTexture(cam.tmp_text);
     SDL_DestroyTexture(cam.tmp_cible);
