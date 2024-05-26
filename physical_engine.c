@@ -1,37 +1,124 @@
 #include "physical_engine.h"
 
-void Charger_Monde_Physique(MONDE_PHYSIQUE* monde) {
-	// 
+void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const PARAMETRES_CAMERA* param_cam, const SDL_Texture** tableau_textures) {
+
+
+
 }
 
-void Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* INPUT, const float dt) {
+void Decharger_Monde_Physique(MONDE_PHYSIQUE* monde) {
 
-	// déterminer le mouvement désiré pour le joueur (en fct des inputs)
-	VECTEUR2D dv; // = dt * ...
-	// parcours des cases de la grille correspondantes (au joueur)
-	for (unsigned int col=(monde->joueur.position.x+monde->joueur.min_x)*monde->nb_colonnes/monde->l; col<(monde->joueur.position.x+monde->joueur.max_x)*monde->nb_colonnes/monde->l; ++col) {
-		for (unsigned int lig=(monde->joueur.position.y+monde->joueur.min_y)*monde->nb_lignes/monde->h; lig<(monde->joueur.position.y+monde->joueur.max_y)*monde->nb_lignes/monde->h; ++lig) {
-			VOITURE* ptr;
-			float pdt_scalaire;
-			VECTEUR2D direction_collision;
-			// parcours des voitures
-			ptr = grille[lig*monde->nb_colonnes + col].liste_voitures;
-			while (ptr != NULL) {
-				if (ptr != &monde->joueur && Test_Collision_Voitures(&monde->joueur,ptr,&direction_collision)) {
-					pdt_scalaire = PDT_SCALAIRE_2D_M(dv,direction_collision);
-					pdt_scalaire = pdt_scalaire < 0 ? 0 : pdt_scalaire;
-					dv.x -= pdt_scalaire*direction_collision.x;
-					dv.y -= pdt_scalaire*direction_collision.y;
+	// free absolument toute la structure
+	for (unsigned short int i=0; i<monde->nb_voitures; ++i) { free(monde->voitures[i].tableau_rayons); free(monde->voitures[i].tableau_centres); }
+	free(monde->voitures);
+	free(monde->grille);
+	free(monde->grille_voitures);
+	free(monde->grille_pos_segments);
+	free(monde->grille_segments);
+	free(monde->cam.tableau_z);
+	free(monde->cam.tableau_p);
+	TABLEAU_SPRITES* ptr = monde->scene.sprites_tout_en_bas;
+	TABLEAU_SPRITES* tmp;
+	while (ptr != NULL) { tmp = ptr->suivant; free(ptr); ptr = tmp; }
+	PLAN_HORIZONTAL* ptr2 = monde->scene.tout_en_bas;
+	PLAN_HORIZONTAL* tmp2;
+	while (ptr2 != NULL) {
+		ptr = ptr2->sprites_au_dessus;
+		while (ptr != NULL) { tmp = ptr->suivant; free(ptr); ptr = tmp; }
+		tmp2 = ptr2->au_dessus;
+		free(ptr2);
+		ptr2 = tmp2;
+	}
+
+}
+
+short int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* INPUT, const float dt) {
+
+	// parcours des voitures et calcul du mouvement final en fct du mouvement désiré (juste en dessous) ET DES COLLISIONS
+	for (unsigned short int i=0; i<monde->nb_voitures; ++i) {
+
+		// déterminer le mouvement désiré (en fct des inputs/de l'ia/de dt)
+		// monde->voitures[i].deplacement_final = ...
+		if (i == 0) { // c'est la voiture du joueur
+		} else { // voiture normale
+		}
+
+		// parcours des cases de la grille dans lesquelles la voiture se trouve
+		for (unsigned int col=(monde->voitures[i].position.x+monde->voitures[i].min_x)*monde->nb_colonnes/monde->l;
+		col<(monde->voitures[i].position.x+monde->voitures[i].max_x)*monde->nb_colonnes/monde->l; ++col) {
+			for (unsigned int lig=(monde->voitures[i].position.y+monde->voitures[i].min_y)*monde->nb_lignes/monde->h;
+			lig<(monde->voitures[i].position.y+monde->voitures[i].max_y)*monde->nb_lignes/monde->h; ++lig) {
+				// parcours des voitures dans cette case
+				for (unsigned short int j=0; j<monde->grille[lig*monde->nb_colonnes + col].nb_voitures; ++j) {
+					float pdt_scalaire;
+					VECTEUR2D direction_collision;
+					unsigned short int k;
+					k = monde->grille_voitures[(lig*monde->nb_colonnes + col)*monde->nb_voitures + j];
+					// si collision
+					if (k != i && Test_Collision_Voitures(monde->voitures+i,monde->voitures+k,&direction_collision)) {
+						// modification du mouvement final en conséquence
+						pdt_scalaire = PDT_SCALAIRE_2D_M(monde->voitures[i].deplacement_final,direction_collision);
+						pdt_scalaire = pdt_scalaire < 0 ? 0 : pdt_scalaire;
+						monde->voitures[i].deplacement_final.x -= pdt_scalaire*direction_collision.x;
+						monde->voitures[i].deplacement_final.y -= pdt_scalaire*direction_collision.y;
+					}
 				}
-				ptr = ptr->voiture_suivante;
+				// parcours des segments dans cette case
+				for (unsigned int j=monde->grille[lig*monde->nb_colonnes + col].indice_debut_segments; j<monde->grille[lig*monde->nb_colonnes + col + 1].indice_debut_segments; ++j) {
+					float pdt_scalaire;
+					VECTEUR2D direction_collision;
+					// si collision
+					if (Test_Collision_Voiture_Segment(monde->voitures+i, monde->grille_segments+j, monde->grille_pos_segments+j, &direction_collision)) {
+						// modification du mouvement final en conséquence
+						pdt_scalaire = PDT_SCALAIRE_2D_M(monde->voitures[i].deplacement_final,direction_collision);
+						pdt_scalaire = pdt_scalaire < 0 ? 0 : pdt_scalaire;
+						monde->voitures[i].deplacement_final.x -= pdt_scalaire*direction_collision.x;
+						monde->voitures[i].deplacement_final.y -= pdt_scalaire*direction_collision.y;
+					}
+				}
 			}
 		}
 	}
 
+	// deuxième parcours des voitures pour appliquer le mouvement final et calculer les nouvelles cases de la grille ET effectuer les changements graphiques
+	for (unsigned short int i=0; i<monde->nb_voitures; ++i) {
 
+		// parcours des cases de la grille dans lesquelles la voiture se trouve
+		for (unsigned int col=(monde->voitures[i].position.x+monde->voitures[i].min_x)*monde->nb_colonnes/monde->l;
+		col<(monde->voitures[i].position.x+monde->voitures[i].max_x)*monde->nb_colonnes/monde->l; ++col) {
+			for (unsigned int lig=(monde->voitures[i].position.y+monde->voitures[i].min_y)*monde->nb_lignes/monde->h;
+			lig<(monde->voitures[i].position.y+monde->voitures[i].max_y)*monde->nb_lignes/monde->h; ++lig) {
+				// efface la voitures de cette case
+				monde->grille[lig*monde->nb_colonnes + col].nb_voitures--;
+				unsigned short int k;
+				for (k=0; monde->grille_voitures[(lig*monde->nb_colonnes + col)*monde->nb_voitures + k] != i; ++k);
+				if (k != monde->grille[lig*monde->nb_colonnes + col].nb_voitures) {
+					monde->grille_voitures[(lig*monde->nb_colonnes + col)*monde->nb_voitures + k] = monde->grille_voitures[(lig*monde->nb_colonnes + col)*monde->nb_voitures + monde->grille[lig*monde->nb_colonnes + col].nb_voitures];
+				}
 
-	// parcours des voitures et même physique que pour le joueur
+			}
+		}
+		// modification de la position
+		monde->voitures[i].position.x += monde->voitures[i].deplacement_final.x;
+		monde->voitures[i].position.y += monde->voitures[i].deplacement_final.y;
+		// parcours des NOUVELLES CASES de la grille dans lesquelles la voiture se trouve
+		for (unsigned int col=(monde->voitures[i].position.x+monde->voitures[i].min_x)*monde->nb_colonnes/monde->l;
+		col<(monde->voitures[i].position.x+monde->voitures[i].max_x)*monde->nb_colonnes/monde->l; ++col) {
+			for (unsigned int lig=(monde->voitures[i].position.y+monde->voitures[i].min_y)*monde->nb_lignes/monde->h;
+			lig<(monde->voitures[i].position.y+monde->voitures[i].max_y)*monde->nb_lignes/monde->h; ++lig) {
+				// ajout de la voiture dans cette case
+				monde->grille_voitures[(lig*monde->nb_colonnes + col)*monde->nb_voitures + monde->grille[lig*monde->nb_colonnes + col].nb_voitures] = i;
+				monde->grille[lig*monde->nb_colonnes + col].nb_voitures++;
+			}
+		}
 
+		// modifications graphiques
+		monde->voitures[i].sprite->position.x = monde->voitures[i].position.x;
+		monde->voitures[i].sprite->position.y = monde->voitures[i].position.y;
+	}
+
+	// renvoie 0 si le jeu continue de tourner, renvoie 1 si la partie est terminée
+	return 0;
 }
 
 SEGMENT2D CREA_SEGMENT_2D(int x1, int x2, int y1, int y2) {

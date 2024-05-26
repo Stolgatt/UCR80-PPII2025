@@ -1,11 +1,8 @@
 #ifndef GRAPHICAL_ENGINE_H
 #define GRAPHICAL_ENGINE_H
 
-#include "engine_common.h"
-
 #include <SDL2/SDL.h>
-
-#include <stdio.h>
+#include "engine_common.h"
 
 struct SPRITE {
 
@@ -98,6 +95,26 @@ struct CAMERA {
 
 };
 typedef struct CAMERA CAMERA;
+
+// une structure pour initialiser une caméra
+struct PARAMETRES_CAMERA {
+	SDL_Renderer* renderer;
+	SDL_Texture* tmp_text;
+	SDL_Texture* tmp_cible;
+	SDL_Rect dimension_cible;
+	SDL_Texture* cible;
+
+	unsigned int N_MAX;
+
+	VECTEUR3D position_initiale;
+	float longitude_initiale;
+	float latitude_initiale;
+	float roulis_initial;
+
+	float semi_FOV_horizontal; // FOV/2, en radians, inclus dans [0;pi/2] 
+	float distance_ecran_camera;
+};
+typedef struct PARAMETRES_CAMERA PARAMETRES_CAMERA;
 
 void AFFICHAGE_CAMERA(const CAMERA* cam, const SCENE* scene);
 

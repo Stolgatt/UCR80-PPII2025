@@ -51,6 +51,9 @@ int main() {
     tmp_surface = SDL_LoadBMP("assets/menu/titre.bmp");
     SDL_Texture* titre = SDL_CreateTextureFromSurface(renderer,tmp_surface);
     SDL_FreeSurface(tmp_surface);
+    tmp_surface = SDL_LoadBMP("assets/menu/game_over.bmp");
+    SDL_Texture* game_over = SDL_CreateTextureFromSurface(renderer,tmp_surface);
+    SDL_FreeSurface(tmp_surface);
     // pour l'interactivité avec les boutons du menu
     // page accueil
     SDL_Rect clickZoneStart = { .x = 827, .y = 138, .w = 1115, .h = 271 };
@@ -73,10 +76,13 @@ int main() {
     SDL_Rect clickZoneContinue = {798,356,1123,460};
     SDL_Rect clickZonePauseOptions = {814,488,1106,593};
     SDL_Rect clickZonePauseMenu = {864,620,1057,725};
+    // game_over
+    SDL_Rect clickZoneRestart = {814,782,1106,887};
+    SDL_Rect clickZoneGOMenu = {864,915,1057,1020};
     // positions du curseur
     SDL_Rect positionCurseur = {910,487,1461,587};
     // initialisation de l'état du jeu
-    enum { ACCUEIL = 0, SELECTION, LEADERBOARD, OPTIONS, PAUSE, JEU };
+    enum { ACCUEIL = 0, SELECTION, LEADERBOARD, OPTIONS, PAUSE, GAME_OVER, JEU };
     short int MENU = ACCUEIL;
     short int JEU_TOURNE = 0;
     enum { DEFAULT, MAP1, MAP2};
@@ -190,8 +196,6 @@ int main() {
         SDL_RenderCopy(renderer, titre, &titre_source, &menu_dest);
         SDL_RenderPresent(renderer);
         SDL_Delay(70);
-    
-        //SDL_SetTextureAlphaMod(SDL_Texture, ValeurAlpha);
     }
     while (loop) {
         // gestion des fps (partie 1)
@@ -257,6 +261,12 @@ int main() {
                             else if EST_DANS_CLICKZONE(EVENT.button,clickZonePauseMenu)
                                 choix_page_menu(2,3,&menu_source);
                             break;
+                        case GAME_OVER:
+                            if EST_DANS_CLICKZONE(EVENT.button,clickZoneRestart)
+                                choix_page_menu(2,1,&menu_source);
+                            else if EST_DANS_CLICKZONE(EVENT.button,clickZoneGOMenu)
+                                choix_page_menu(2,2,&menu_source);
+                            break;
                     }
                 }
                 else if (EVENT.type == SDL_MOUSEBUTTONUP) {
@@ -268,26 +278,22 @@ int main() {
                                     choix_page_menu(4, 0, &loading_source);
                                     SDL_RenderCopy(renderer, chargement, &loading_source, &menu_dest);
                                     SDL_RenderPresent(renderer);
-                                    SDL_Delay(100);
+                                    SDL_Delay(50);
 
                                     choix_page_menu(4, 1, &loading_source);
                                     SDL_RenderCopy(renderer, chargement, &loading_source, &menu_dest);
                                     SDL_RenderPresent(renderer);
-                                    SDL_Delay(100);
+                                    SDL_Delay(50);
                                     
                                     choix_page_menu(4, 2, &loading_source);
                                     SDL_RenderCopy(renderer, chargement, &loading_source, &menu_dest);
                                     SDL_RenderPresent(renderer);
-                                    SDL_Delay(100);
+                                    SDL_Delay(50);
 
                                     choix_page_menu(4, 3, &loading_source);
                                     SDL_RenderCopy(renderer, chargement, &loading_source, &menu_dest);
                                     SDL_RenderPresent(renderer);
-                                    SDL_Delay(100);
-                                    // SDL_RenderCopy la bonne zone de l'image
-                                    // SDL_RenderPresent (pour updater la fenetre)
-                                    // SDL_Delay(le temps nécessaire)
-                                    // répéter
+                                    SDL_Delay(50);
                                 }
                                 if (SELECTED == MAP2){
                                     plan.texture = mapneon_texture;
@@ -359,6 +365,17 @@ int main() {
                                 menu_texture = page_accueil;
                                 MENU = ACCUEIL; 
                                 JEU_TOURNE = 0; }
+                            else
+                                choix_page_menu(2,0,&menu_source);
+                            break;
+                        case GAME_OVER:
+                            if EST_DANS_CLICKZONE(EVENT.button,clickZoneRestart) {
+                                
+                            }
+                            else if EST_DANS_CLICKZONE(EVENT.button,clickZoneGOMenu) {
+                                choix_page_menu(3,0,&menu_source);
+                                menu_texture = page_accueil;
+                                MENU = ACCUEIL; }
                             else
                                 choix_page_menu(2,0,&menu_source);
                             break;
@@ -545,6 +562,8 @@ int main() {
             if (INPUT[M]) {cam.longitude -= 0.02;}
             if (INPUT[K]) {cam.longitude += 0.02;}*/
 
+
+
             SDL_RenderClear(renderer);
             AFFICHAGE_CAMERA(&cam, &scene);
             SDL_RenderPresent(renderer);
@@ -564,6 +583,9 @@ int main() {
 
     free(cam.tableau_p);
     free(cam.tableau_z);
+    SDL_DestroyTexture(game_over);
+    SDL_DestroyTexture(titre);
+    SDL_DestroyTexture(chargement);
     SDL_DestroyTexture(select_map);
     SDL_DestroyTexture(page_accueil);
     SDL_DestroyTexture(options);

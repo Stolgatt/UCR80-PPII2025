@@ -1,5 +1,5 @@
-HEADERS = engine_common.h graphical_engine.h
-SRCS = engine_common.c graphical_engine.c
+HEADERS = engine_common.h graphical_engine.h physical_engine.h
+SRCS = engine_common.c graphical_engine.c physical_engine.c
 
 CC= gcc
 FLAGS= -Wall -Wextra -pedantic 
