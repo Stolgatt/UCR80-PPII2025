@@ -1,15 +1,97 @@
 #include "physical_engine.h"
 
-void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const PARAMETRES_CAMERA* param_cam, const SDL_Texture** tableau_textures) {
+void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const PARAMETRES_CAMERA* param_cam, SDL_Texture *const* tableau_textures) {
 
+	// initialisation plans
+	monde->scene.sprites_tout_en_bas = NULL;
+	PLAN_HORIZONTAL** ptr_plan = &monde->scene.tout_en_bas;
+	PLAN_HORIZONTAL* ptr_plan_prev = NULL;
+	for (unsigned short int i=0; i<niveau->nb_sols; ++i) {
+		*ptr_plan = malloc(sizeof(PLAN_HORIZONTAL));
+		(*ptr_plan)->texture = tableau_textures[niveau->texture_ids_sols[i]];
+		(*ptr_plan)->rotation = niveau->angles_initiaux_sols[i];
+		(*ptr_plan)->echelle = niveau->echelles_sols[i];
+		(*ptr_plan)->position.x = niveau->positions_initiales_sols[i].x;
+		(*ptr_plan)->position.y = niveau->positions_initiales_sols[i].y;
+		(*ptr_plan)->position.z = 0.;
+		(*ptr_plan)->source.x = (*ptr_plan)->source.y = 0;
+		SDL_QueryTexture((*ptr_plan)->texture,NULL,NULL,&(*ptr_plan)->source.w,&(*ptr_plan)->source.h);
+		(*ptr_plan)->sprites_au_dessus = NULL;
+		(*ptr_plan)->en_dessous = ptr_plan_prev;
+		ptr_plan_prev = *ptr_plan;
+		ptr_plan = &(*ptr_plan)->au_dessus;
+	}
+	ptr_plan_prev->au_dessus = NULL;
+	monde->scene.tout_en_haut = ptr_plan_prev;
+	ptr_plan_prev->sprites_au_dessus = malloc(sizeof(TABLEAU_SPRITES));
+	ptr_plan_prev->sprites_au_dessus->suivant = NULL;
+	ptr_plan_prev->sprites_au_dessus->N = niveau->nb_voitures + niveau->nb_decors;
+	ptr_plan_prev->sprites_au_dessus->sprites = calloc(ptr_plan_prev->sprites_au_dessus->N,sizeof(SPRITE));
+	unsigned int index_sprites = 0;
+	
+	// initialisation sprites
+	for (unsigned int i=0; i<niveau->nb_decors; ++i,++index_sprites) {
+		ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].texture = tableau_textures[niveau->texture_ids_dec[i]];
+		ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].echelle = niveau->echelles_dec[i];
+		ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].position = niveau->positions_dec[i];
+		// TODO gestion animation/spritesheets
+		ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].source.x = ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].source.y = 0;
+		SDL_QueryTexture(tableau_textures[niveau->texture_ids_dec[i]],NULL,NULL,&ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].source.w,&ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].source.h);
+	}
 
+	// initialisation voitures
+	monde->nb_voitures = niveau->nb_voitures;
+	monde->voitures = calloc(monde->nb_voitures,sizeof(VOITURE));
+	// voitures
+	for (unsigned short int i=0; i<niveau->nb_voitures; ++i) {
+		monde->voitures[i].nombre_disques = 1;
+		monde->voitures[i].tableau_rayons = niveau->rayons_voit+i;
+		monde->voitures[i].tableau_centres = calloc(1,sizeof(VECTEUR2D));
+		monde->voitures[i].min_x = monde->voitures[i].min_y = -(monde->voitures[i].max_x = monde->voitures[i].max_y = niveau->rayons_voit[i]);
+		monde->voitures[i].position.x = niveau->positions_initiales_voit[i].x;
+		monde->voitures[i].position.y = niveau->positions_initiales_voit[i].y;
+		monde->voitures[i].angle = niveau->angles_initiaux_voit[i];
+		// l'axe de départ est l'axe des y (car la caméra est centré dessus, ça facilite les choses)
+		sincosf(monde->voitures[i].angle,&monde->voitures[i].vect_rotation.x,&monde->voitures[i].vect_rotation.y);
+		monde->voitures[i].vect_rotation.x = -monde->voitures[i].vect_rotation.x;
+		monde->voitures[i].vitesse = 0.;
+		monde->voitures[i].sprite = ptr_plan_prev->sprites_au_dessus->sprites+index_sprites;
+		index_sprites++;
+		monde->voitures[i].sprite->texture = tableau_textures[niveau->texture_ids_voit[i]];
+		monde->voitures[i].sprite->echelle = niveau->echelles_voit[i];
+		monde->voitures[i].sprite->position = niveau->positions_initiales_voit[i];
+		// TODO source rectangle (animation voiture à gauche voiture à droite)
+		monde->voitures[i].sprite->source.x = monde->voitures[i].sprite->source.y = 0;
+		SDL_QueryTexture(monde->voitures[i].sprite->texture,NULL,NULL,&monde->voitures[i].sprite->source.w,&monde->voitures[i].sprite->source.h);
+	}
+
+	// initialisation camera
+	monde->cam.renderer = param_cam->renderer;
+	monde->cam.tmp_text = param_cam->tmp_text;
+	monde->cam.tmp_cible = param_cam->tmp_cible;
+	monde->cam.dimension_cible = param_cam->dimension_cible;
+	monde->cam.cible = param_cam->cible;
+	monde->cam.N_MAX = param_cam->N_MAX;
+	monde->cam.tableau_z = calloc(param_cam->N_MAX,sizeof(Z_SPRITE));
+	monde->cam.tableau_p = calloc(param_cam->N_MAX,sizeof(SPRITE_PROJETE));
+	monde->cam.roulis = 0.;
+	monde->cam.latitude = CAM_LAT;
+	monde->cam.longitude = niveau->angles_initiaux_voit[0];
+	monde->cam.position.x = monde->voitures[0].position.x-DIST_CAM_VOITURE*monde->voitures[0].vect_rotation.x;
+	monde->cam.position.y = monde->voitures[0].position.y-DIST_CAM_VOITURE*monde->voitures[0].vect_rotation.y;
+	monde->cam.position.z = HAUTEUR_CAMERA;
+	monde->cam.offset_horizontal = monde->cam.offset_vertical = 0.;
+	monde->cam.distance_ecran = DIST_CAM_ECRAN;
+	monde->cam.echelle_ecran = tanf(SEMI_FOV)*DIST_CAM_ECRAN*2./param_cam->dimension_cible.w;
+
+	// initialisation segments
 
 }
 
 void Decharger_Monde_Physique(MONDE_PHYSIQUE* monde) {
 
 	// free absolument toute la structure
-	for (unsigned short int i=0; i<monde->nb_voitures; ++i) { free(monde->voitures[i].tableau_rayons); free(monde->voitures[i].tableau_centres); }
+	for (unsigned short int i=0; i<monde->nb_voitures; ++i) { free(monde->voitures[i].tableau_centres); }
 	free(monde->voitures);
 	free(monde->grille);
 	free(monde->grille_voitures);
@@ -19,12 +101,12 @@ void Decharger_Monde_Physique(MONDE_PHYSIQUE* monde) {
 	free(monde->cam.tableau_p);
 	TABLEAU_SPRITES* ptr = monde->scene.sprites_tout_en_bas;
 	TABLEAU_SPRITES* tmp;
-	while (ptr != NULL) { tmp = ptr->suivant; free(ptr); ptr = tmp; }
+	while (ptr != NULL) { tmp = ptr->suivant; free(ptr->sprites); free(ptr); ptr = tmp; }
 	PLAN_HORIZONTAL* ptr2 = monde->scene.tout_en_bas;
 	PLAN_HORIZONTAL* tmp2;
 	while (ptr2 != NULL) {
 		ptr = ptr2->sprites_au_dessus;
-		while (ptr != NULL) { tmp = ptr->suivant; free(ptr); ptr = tmp; }
+		while (ptr != NULL) { tmp = ptr->suivant; free(ptr->sprites); free(ptr); ptr = tmp; }
 		tmp2 = ptr2->au_dessus;
 		free(ptr2);
 		ptr2 = tmp2;

@@ -66,27 +66,27 @@ struct MONDE_PHYSIQUE {
 };
 typedef struct MONDE_PHYSIQUE MONDE_PHYSIQUE;
 
+// defines liés au fonctionnement de la caméra par rapport au joueur
+#define CAM_LAT (-M_PI/6.)
+#define DIST_CAM_VOITURE 50.
+#define HAUTEUR_CAMERA 35.
+#define SEMI_FOV (M_PI/4.)
+#define DIST_CAM_ECRAN 5.
+
 // contient toutes les infos nécessaires à l'initialisation d'un niveau
 struct NIVEAU {
 
-	// position initiale de la caméra (et du joueur)
-	VECTEUR3D position_initiale;
-	float longitude_initiale;
-	float latitude_initiale;
-
-	// distance au sol des sprites des voitures
-	float distance_au_sol;
-
-	// adversaires
-	unsigned short int nb_adversaires;
-	// tableau des positions initiales des adversaires
-	VECTEUR2D* positions_initiales_adv;
-	// tableau des rotations initiales des adversaires
-	float* angles_initiaux_adv;
-	// tableau des rayons (tailles) des adversaires
-	float* rayons_adv;
-	// tableau des textures des sprites
-	unsigned short int* texture_ids_adv;
+	// voitures (la première est celle du joueur)
+	unsigned short int nb_voitures;
+	// tableau des positions initiales
+	VECTEUR3D* positions_initiales_voit;
+	// tableau des rotations initiales
+	float* angles_initiaux_voit;
+	// tableau des rayons (tailles)
+	float* rayons_voit;
+	// tableau des textures des sprites (avec échelles)
+	float* echelles_voit;
+	unsigned short int* texture_ids_voit;
 
 	// sols (le premier est le plus profond)
 	unsigned short int nb_sols;
@@ -96,7 +96,7 @@ struct NIVEAU {
 	unsigned short int* texture_ids_sols;
 
 	// sprites décors
-	VECTEUR3D* position_initiales_dec;
+	unsigned int nb_decors;
 	float* echelles_dec;
 	VECTEUR3D* positions_dec;
 	unsigned short int* texture_ids_dec;
@@ -138,7 +138,7 @@ inline short int Test_Collision_Voiture_Segment(const VOITURE* v1, const SEGMENT
 	return 0;
 }
 
-void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const PARAMETRES_CAMERA* param_cam, const SDL_Texture** tableau_textures);
+void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const PARAMETRES_CAMERA* param_cam, SDL_Texture *const* tableau_textures);
 void Decharger_Monde_Physique(MONDE_PHYSIQUE* monde);
 short int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* INPUT, const float dt);
 

@@ -96,7 +96,7 @@ struct CAMERA {
 };
 typedef struct CAMERA CAMERA;
 
-// une structure pour initialiser une caméra
+// une structure pour initialiser une caméra (pas complètement utilisée telle quelle mais c'est pas grave)
 struct PARAMETRES_CAMERA {
 	SDL_Renderer* renderer;
 	SDL_Texture* tmp_text;
