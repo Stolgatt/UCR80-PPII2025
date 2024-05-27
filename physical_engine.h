@@ -7,6 +7,8 @@
 #include "engine_common.h"
 #include "graphical_engine.h"
 
+#define FPS_CONTROLS
+
 struct VOITURE {
 
 	// nombre de disques constituants la hitbox
@@ -53,9 +55,9 @@ struct MONDE_PHYSIQUE {
 	float l;
 	float h;
 	// la grille en question (stocké sous la forme d'une succession de lignes : grille[ligne][colonne] = grille[ligne*nb_colonnes + colonne])
+	// il faut une dernière case supplémentaire avec nb_voitures mis à 0 et indice_debut_segment mis au nombre total de segments de grille_segments
 	CASE_GRILLE* grille;
 	unsigned short int* grille_voitures; // tableau de char[nb_voitures] : grille_voitures[ligne][colonne][index] = grille[(ligne*nb_colonnes + colonne)*nb_voitures + index]
-	// il faut une dernière case supplémentaire avec nb_voitures mis à 0 et indice_debut_segment mis au nombre total de segments de grille_segments
 	VECTEUR2D* grille_pos_segments; // tableau de VECTEUR2D
 	SEGMENT2D* grille_segments; // tableau de SEGMENT2D
 
@@ -67,8 +69,8 @@ struct MONDE_PHYSIQUE {
 typedef struct MONDE_PHYSIQUE MONDE_PHYSIQUE;
 
 // defines liés au fonctionnement de la caméra par rapport au joueur
-#define CAM_LAT (-M_PI/6.)
-#define DIST_CAM_VOITURE 50.
+#define CAM_LAT (-M_PI/8.)
+#define DIST_CAM_VOITURE 35.
 #define HAUTEUR_CAMERA 35.
 #define SEMI_FOV (M_PI/4.)
 #define DIST_CAM_ECRAN 5.
@@ -102,10 +104,16 @@ struct NIVEAU {
 	unsigned short int* texture_ids_dec;
 
 	// segments
-	unsigned short int nb_tableaux_segments;
-	unsigned int* separations_tableaux_segments;
-	int* tableau_x;
-	int* tableau_y;
+	unsigned short int nb_tableaux;
+	unsigned int* tailles_tableaux;
+	float** tableaux_x;
+	float** tableaux_y;
+
+	// grille
+	unsigned int nb_lignes;
+	unsigned int nb_colonnes;
+	float l;
+	float h;
 
 };
 typedef struct NIVEAU NIVEAU;
@@ -138,21 +146,19 @@ inline short int Test_Collision_Voiture_Segment(const VOITURE* v1, const SEGMENT
 	return 0;
 }
 
+inline SEGMENT2D CREA_SEGMENT_2D(float x1, float x2, float y1, float y2) {
+	SEGMENT2D res;
+	res.direction.x = x2 - x1;
+	res.direction.y = y2 - y1;
+	float norme = sqrt(res.direction.x*res.direction.x + res.direction.y*res.direction.y);
+	res.direction.x /= norme;
+	res.direction.y /= norme;
+	res.longueur = norme;
+	return res;
+}
+
 void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const PARAMETRES_CAMERA* param_cam, SDL_Texture *const* tableau_textures);
 void Decharger_Monde_Physique(MONDE_PHYSIQUE* monde);
 short int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* INPUT, const float dt);
-
-inline VECTEUR2D Calcul_reflexion(VECTEUR2D direction_voulue, SEGMENT2D* segment) {
-    VECTEUR2D vecteur_normal;
-    vecteur_normal.x = -segment->direction.y;
-    vecteur_normal.y = segment->direction.x;
-    float produit_scalaire = direction_voulue.x*vecteur_normal.x + direction_voulue.y*vecteur_normal.y;
-    VECTEUR2D reflexion;
-    reflexion.x = direction_voulue.x - 2*produit_scalaire*vecteur_normal.x;
-    reflexion.y = direction_voulue.y - 2*produit_scalaire*vecteur_normal.y;
-    return reflexion;
-}
-SEGMENT2D CREA_SEGMENT_2D(int x1, int x2, int y1, int y2);
-VECTEUR2D Calcul_collisions(VECTEUR2D direction_voulue,const float* rayon, const VECTEUR2D* position_disque);
 
 #endif

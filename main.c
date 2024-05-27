@@ -27,7 +27,8 @@ int main() {
         return 1;
     }
 
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    SDL_SetRenderDrawBlendMode(renderer,SDL_BLENDMODE_BLEND);
 
     // charge les textures du menu UNE FOIS POUR TOUTES
     SDL_Surface* tmp_surface = SDL_LoadBMP("assets/menu/page_accueil.bmp");
@@ -100,73 +101,28 @@ int main() {
     SDL_Rect loading_source;
     SDL_Rect titre_source;
 
-    //Chargement des maps et véhicules
-    tmp_surface = SDL_LoadBMP("assets/maps/mapferme.bmp");
-    SDL_Texture* mapferme_texture = SDL_CreateTextureFromSurface(renderer, tmp_surface);
-    SDL_FreeSurface(tmp_surface);
-    tmp_surface = SDL_LoadBMP("assets/maps/mapneon.bmp");
-    SDL_Texture* mapneon_texture = SDL_CreateTextureFromSurface(renderer, tmp_surface);
-    SDL_FreeSurface(tmp_surface);
-    tmp_surface = SDL_LoadBMP("assets/sprites/delorean.bmp");
-    SDL_Texture* car_texture = SDL_CreateTextureFromSurface(renderer, tmp_surface);
-    SDL_FreeSurface(tmp_surface);
-
-    CAMERA cam;
-    cam.N_MAX = 10000;
-    cam.tableau_z = calloc(cam.N_MAX,sizeof(Z_SPRITE));
-    cam.tableau_p = calloc(cam.N_MAX,sizeof(SPRITE_PROJETE));
-    cam.position.x = 0.;
-    cam.position.y = 0.;
-    cam.position.z = 50;
-    cam.longitude = 0.;
-    cam.latitude = -1.;
-    cam.roulis = 0.;
-    cam.renderer = renderer;
-    cam.tmp_text = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_TARGET,4000,4000);
-    cam.tmp_cible = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_TARGET,1.5*TX,1.5*TX);
-    cam.cible = NULL;
-    cam.dimension_cible.x = 0;
-    cam.dimension_cible.y = 0;
-    cam.dimension_cible.w = TX;
-    cam.dimension_cible.h = TY;
-    cam.echelle_ecran = 0.025;
-    cam.distance_ecran = 10.;
-    cam.offset_horizontal = cam.offset_vertical = 0.;
-
-    PLAN_HORIZONTAL plan;
-    plan.rotation = 0.;
-    // plan.texture = mapferme_texture;
-    plan.echelle = 1.;
-    plan.position.x = plan.position.z = 0.;
-    plan.position.y = 0;
-    plan.au_dessus = plan.en_dessous = NULL;
-    plan.source.x = plan.source.y = 0;
-    // plan.source.w = 1600;
-    // plan.source.h = 3000;
-
-    SCENE scene;
-    scene.sprites_tout_en_bas = NULL;
-    scene.tout_en_bas = scene.tout_en_haut = &plan;
-
-    SPRITE sprite[50];
-    for (unsigned int i=0; i<sizeof(sprite)/sizeof(SPRITE); ++i) {
-        sprite[i].texture = car_texture;
-        sprite[i].echelle = 2.;
-        sprite[i].source.x = sprite[i].source.y = 0;
-        sprite[i].source.w = 800;
-        sprite[i].source.h = 500;
-        sprite[i].position.z = 20.;
-        sprite[i].position.x = (15*i)%500;
-        sprite[i].position.y = (10*i*i)%500;
-        /*sprite[i].speed = 0;
-        sprite[i].max_speed = 4;*/
+    //Chargement des textures des maps/véhicules/autres...
+    SDL_Texture* TEXTURES[sizeof(TEXTURE_FILES)/sizeof(char*)];
+    for (unsigned short int i=0; i<sizeof(TEXTURE_FILES)/sizeof(char*); ++i) {
+        tmp_surface = SDL_LoadBMP(TEXTURE_FILES[i]);
+        TEXTURES[i] = SDL_CreateTextureFromSurface(renderer, tmp_surface);
+        SDL_SetTextureBlendMode(TEXTURES[i],SDL_BLENDMODE_BLEND);
+        SDL_FreeSurface(tmp_surface);
     }
 
-    TABLEAU_SPRITES tab_sprites;
-    tab_sprites.N = sizeof(sprite)/sizeof(SPRITE);
-    tab_sprites.suivant = NULL;
-    tab_sprites.sprites = sprite;
-    plan.sprites_au_dessus = &tab_sprites;
+    PARAMETRES_CAMERA param_cam;
+    param_cam.renderer = renderer;
+    param_cam.tmp_text = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_TARGET,8000,4000);
+    SDL_SetTextureBlendMode(param_cam.tmp_text,SDL_BLENDMODE_BLEND);
+    param_cam.tmp_cible = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_TARGET,1.5*TX,1.5*TX);
+    SDL_SetTextureBlendMode(param_cam.tmp_cible,SDL_BLENDMODE_BLEND);
+    param_cam.dimension_cible.x = param_cam.dimension_cible.y = 0;
+    param_cam.dimension_cible.w = TX;
+    param_cam.dimension_cible.h = TY;
+    param_cam.cible = NULL;
+    param_cam.N_MAX = 10000;
+
+    MONDE_PHYSIQUE monde;
 
     VECTEUR2D deplacement_zs,deplacement_qd;//,deplacement_zs2,deplacement_qd2;
     float speed_coef = 5.;
@@ -183,6 +139,8 @@ int main() {
     SDL_Event EVENT;
     int loop = 1;
     long long temps_frame,temps_frame2;
+    long long mesure_dt = -1;
+    long long mesure_dt2;
 #ifdef MONTRER_FPS
     int compteur_fps = 0;
     long long temps_ecoule_fps = SDL_GetTicks();
@@ -295,16 +253,8 @@ int main() {
                                     SDL_RenderPresent(renderer);
                                     SDL_Delay(50);
                                 }
-                                if (SELECTED == MAP2){
-                                    plan.texture = mapneon_texture;
-                                    plan.source.w = 5000;
-                                    plan.source.h = 5000;
-                                }   
-                                else{
-                                    plan.texture = mapferme_texture;
-                                    plan.source.w = 1600;
-                                    plan.source.h = 3000;
-                                }
+                                if (SELECTED == MAP2) Charger_Monde_Physique(&monde,&lvl_neon_city,&param_cam,TEXTURES);
+                                else Charger_Monde_Physique(&monde,&lvl_ferme,&param_cam,TEXTURES);
                                 MENU = JEU;
                                 JEU_TOURNE = 1;
                                 for (unsigned int i=0; i<sizeof(INPUT)/sizeof(short int); ++i) INPUT[i] = 0; }
@@ -364,13 +314,18 @@ int main() {
                                 choix_page_menu(3,0,&menu_source);
                                 menu_texture = page_accueil;
                                 MENU = ACCUEIL; 
-                                JEU_TOURNE = 0; }
+                                JEU_TOURNE = 0; 
+                                Decharger_Monde_Physique(&monde);}
                             else
                                 choix_page_menu(2,0,&menu_source);
                             break;
                         case GAME_OVER:
                             if EST_DANS_CLICKZONE(EVENT.button,clickZoneRestart) {
-                                
+                                if (SELECTED == MAP2) Charger_Monde_Physique(&monde,&lvl_neon_city,&param_cam,TEXTURES);
+                                else Charger_Monde_Physique(&monde,&lvl_ferme,&param_cam,TEXTURES);
+                                MENU = JEU;
+                                JEU_TOURNE = 1;
+                                for (unsigned int i=0; i<sizeof(INPUT)/sizeof(short int); ++i) { INPUT[i] = 0; }
                             }
                             else if EST_DANS_CLICKZONE(EVENT.button,clickZoneGOMenu) {
                                 choix_page_menu(3,0,&menu_source);
@@ -386,7 +341,7 @@ int main() {
             SDL_RenderClear(renderer);
             switch (MENU) {
                 case PAUSE:
-                    AFFICHAGE_CAMERA(&cam, &scene);
+                    AFFICHAGE_CAMERA(&monde.cam, &monde.scene);
                     SDL_RenderCopy(renderer,menu_texture,&menu_source,&menu_dest);
                     break;
                 case OPTIONS:
@@ -523,12 +478,12 @@ int main() {
                 }
             }
 
+            /*if (INPUT[W]) plan.rotation += 0.05;
+            if (INPUT[X]) plan.rotation -= 0.05;
             if (INPUT[UP]) cam.latitude += 0.05;
             if (INPUT[DOWN]) cam.latitude -= 0.05;
             if (INPUT[LEFT]) cam.longitude += 0.05;
             if (INPUT[RIGHT]) cam.longitude -= 0.05;
-            if (INPUT[W]) plan.rotation += 0.05;
-            if (INPUT[X]) plan.rotation -= 0.05;
             cam.latitude = cam.latitude > M_PI / 2 ? M_PI / 2 : cam.latitude; //limite la latitude
             cam.latitude = cam.latitude < -M_PI / 2 ? -M_PI / 2 : cam.latitude; //limite la latitude
             sincosf(cam.longitude,&deplacement_qd.y,&deplacement_qd.x);
@@ -536,7 +491,7 @@ int main() {
             deplacement_qd.y *= speed_coef;
            
             deplacement_zs.x = -deplacement_qd.y;
-            deplacement_zs.y = deplacement_qd.x;
+            deplacement_zs.y = deplacement_qd.x;*/
 
             /*deplacement_qd2.x = deplacement_qd.x;
             deplacement_qd2.y = deplacement_qd.y;
@@ -547,12 +502,12 @@ int main() {
             deplacement_zs2.y = deplacement_qd2.x; */
 
 
-            if (INPUT[Z]) {cam.position.x += deplacement_zs.x; cam.position.y += deplacement_zs.y;}
+            /*if (INPUT[Z]) {cam.position.x += deplacement_zs.x; cam.position.y += deplacement_zs.y;}
             if (INPUT[S]) {cam.position.x -= deplacement_zs.x; cam.position.y -= deplacement_zs.y;}
             if (INPUT[D]) {cam.position.x += deplacement_qd.x; cam.position.y += deplacement_qd.y;}
             if (INPUT[Q]) {cam.position.x -= deplacement_qd.x; cam.position.y -= deplacement_qd.y;}
             if (INPUT[E]) cam.position.z += speed_coef;
-            if (INPUT[A]) cam.position.z -= speed_coef;
+            if (INPUT[A]) cam.position.z -= speed_coef;*/
 
             /*cam.position.x += deplacement_zs2.x; cam.position.y += deplacement_zs2.y; //déplacements du joueur synchronisé avec la caméra
             sprite[0].position.x += deplacement_zs2.x;sprite[0].position.y += deplacement_zs2.y;
@@ -562,10 +517,21 @@ int main() {
             if (INPUT[M]) {cam.longitude -= 0.02;}
             if (INPUT[K]) {cam.longitude += 0.02;}*/
 
-
+            mesure_dt2 = SDL_GetTicks();
+            if (mesure_dt < 0) mesure_dt = mesure_dt2;
+            if (Calculer_Monde_Physique(&monde, INPUT, (mesure_dt2 - mesure_dt)/1000.)) { // calcule du monde physique
+                // fin du jeu (menu game over)
+                Decharger_Monde_Physique(&monde);
+                choix_page_menu(2,0,&menu_source);
+                menu_texture = game_over;
+                MENU = GAME_OVER; 
+                JEU_TOURNE = 0;
+                continue;
+            }
+            mesure_dt = mesure_dt2;
 
             SDL_RenderClear(renderer);
-            AFFICHAGE_CAMERA(&cam, &scene);
+            AFFICHAGE_CAMERA(&monde.cam, &monde.scene);
             SDL_RenderPresent(renderer);
         }
 
@@ -581,8 +547,10 @@ int main() {
         while ((temps_frame2 = SDL_GetTicks() - temps_frame) <= DUREE_FRAME) SDL_Delay(DUREE_FRAME - temps_frame2);
     }
 
-    free(cam.tableau_p);
-    free(cam.tableau_z);
+    if (JEU_TOURNE)
+        Decharger_Monde_Physique(&monde);
+    for (unsigned short int i=0; i<sizeof(TEXTURE_FILES)/sizeof(char*); ++i)
+        SDL_DestroyTexture(TEXTURES[i]);
     SDL_DestroyTexture(game_over);
     SDL_DestroyTexture(titre);
     SDL_DestroyTexture(chargement);
@@ -591,11 +559,8 @@ int main() {
     SDL_DestroyTexture(options);
     SDL_DestroyTexture(pause);
     SDL_DestroyTexture(curseur);
-    SDL_DestroyTexture(mapferme_texture);
-    SDL_DestroyTexture(mapneon_texture);
-    SDL_DestroyTexture(car_texture);
-    SDL_DestroyTexture(cam.tmp_text);
-    SDL_DestroyTexture(cam.tmp_cible);
+    SDL_DestroyTexture(param_cam.tmp_text);
+    SDL_DestroyTexture(param_cam.tmp_cible);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();

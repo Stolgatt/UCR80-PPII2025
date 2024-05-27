@@ -1,4 +1,4 @@
-HEADERS = engine_common.h graphical_engine.h physical_engine.h
+HEADERS = engine_common.h graphical_engine.h physical_engine.h levels.h
 SRCS = engine_common.c graphical_engine.c physical_engine.c
 
 CC= gcc
@@ -10,7 +10,7 @@ FLAGS += $(shell pkg-config --libs sdl2)
 
 all: main.out main_test.out
 
-main.out: main.c $(SRCS) $(HEADERS)
+main.out: main.c main.h $(SRCS) $(HEADERS)
 	$(CC) $(FLAGS) $(SRCS) main.c -o main.out
 	chmod u+x main.out
 
