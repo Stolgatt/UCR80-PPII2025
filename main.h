@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL2/SDL.h>
+#include <SDL_mixer.h>
+#include <SDL_ttf.h>
 #include "engine_common.h"
 #include "graphical_engine.h"
 #include "physical_engine.h"
+// #include "interface_utilisateur.h"
 
 #include "levels.h"
 
