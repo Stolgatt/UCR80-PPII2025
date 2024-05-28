@@ -1,0 +1,34 @@
+Dans Ultimate Car racing 80 retour vers le passé,
+
+Vous contrôlez une voiture rétro et tentez de faire le plus rapidement possible le tour du circuit.
+Le design retro, la musique 8 bits et le concept simple du jeu participent à un vrai retour du joueur dans le passé.
+
+Nous allons maintenant vous donner des explications sur les choix techniques, les algorithmes, les structures de données.
+
+Nous avons tout d'abord besoin des bibliothèques SDL2, SDL_mixer et SDL_ttf pour pouvoir faire fonctionner le jeu.
+
+Pour les choix techniques, nous avons choisi dans un premier temps de faire une caméra en 3D car les compétences
+de Johan en C le permettait, les textures uniquement en 2D sont un choix technique car la modélisation d'objets 3D
+sortait du cadre de nos compétences. Le modèle physique de la voiture a été conçu principalement avec ... dans
+l'objectif de ... . Pour la détection que le joueur parcours le circuit dans le bon sens nous avons créé des 
+checkpoints, qui serviront au pathfinding des bots. La musique a été implémentée grâce à la librairie SDL_mixer
+par simplicité car les fonctions nécessaires à la gestion du son y sont toutes présentes, de même pour SDL_ttf pour
+la création d'un timer. Les pages du menu principal ont été créées grâce au cours de SDL2, et la technique de
+changement de sprite en fonction de l'action du joueur s'en sont inspirées. Nous avons fait le choix de générer une
+seule fois les textures au début du main pour plus de praticité. Nous calculons la gestion des fps grâce à SDL_GetTicks()
+qui donne les milisecondes écoulées depuis le lancement de la bibliothèque.
+
+
+Pour le choix des algorithmes nous avons choisi 
+le tri selectif car dans notre cas c'était le modèle le plus efficace et rapide
+tableaux de sprite chainés pour plus de practicité et rapidité
+
+nous avons démarré la réalisation d'adversaires à affronter, ceux-ci auraient des mouvements dirigés par du pathfinding
+entre les différents checkpoints créés tout au long du parcours.
+
+
+Pour les structures de données nous avons créé
+une grille qui contient l'ensemble des segments de la piste de course
+la liste doublement chaînée pour stocker les sols
+un tableau de liste de chaînée d'objets dynamiques (voitures + plage d'indice pour les objets statiques correspondants => 2ème tableau)
+
