@@ -115,7 +115,7 @@ struct PARAMETRES_CAMERA {
 	float distance_ecran_camera;
 };
 typedef struct PARAMETRES_CAMERA PARAMETRES_CAMERA;
-
+void TRI_RAPIDE(Z_SPRITE* tableau, unsigned int debut, unsigned int fin);
 void AFFICHAGE_CAMERA(const CAMERA* cam, const SCENE* scene);
 
 #endif
