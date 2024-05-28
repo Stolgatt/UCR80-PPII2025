@@ -220,7 +220,7 @@ void Decharger_Monde_Physique(MONDE_PHYSIQUE* monde) {
 
 }
 
-short int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* INPUT, const unsigned long long dt) {
+long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* INPUT, const unsigned long long dt) {
 
 	// gestion checkpoints
 

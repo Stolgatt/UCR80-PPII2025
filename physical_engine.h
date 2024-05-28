@@ -212,6 +212,6 @@ inline SEGMENT2D CREA_SEGMENT_2D(float x1, float x2, float y1, float y2) {
 void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const CONTEXTE_SDL* contexte);
 void Afficher_Monde_Physique(MONDE_PHYSIQUE* monde);
 void Decharger_Monde_Physique(MONDE_PHYSIQUE* monde);
-short int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* INPUT, const unsigned long long dt);
+long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* INPUT, const unsigned long long dt);
 
 #endif

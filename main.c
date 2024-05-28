@@ -101,7 +101,7 @@ int main() {
     // initialisation ttf font
     TTF_Init();
     // chargement police
-    TTF_Font* font48 = TTF_OpenFont("assets/police/digital-timer.ttf", 48);
+    TTF_Font* font48 = TTF_OpenFont("assets/police/game_over.ttf", 120);
     if (!font48) {
         printf("Erreur: impossible de charger la police de caractères.\n");
         return 1;
@@ -158,13 +158,13 @@ int main() {
 #endif
 
     //Ecran titre
-    for (int i = 0; i <= 255; i+=5){
+    /*for (int i = 0; i <= 255; i+=5){
         choix_page_menu(1, 0, &titre_source);
         SDL_SetTextureAlphaMod(titre, i);
         SDL_RenderCopy(renderer, titre, &titre_source, &menu_dest);
         SDL_RenderPresent(renderer);
         SDL_Delay(70);
-    }
+    }*/
 
     // Jouer la musique indéfiniment
     Mix_PlayChannel(0, SONS[0], -1);
@@ -246,7 +246,7 @@ int main() {
                         case ACCUEIL:
                             if EST_DANS_CLICKZONE(EVENT.button,clickZoneStart) {
                                 //Loading screen
-                                for (int i = 0; i <= 10; i++){
+                                /*for (int i = 0; i <= 10; i++){
                                     choix_page_menu(4, 0, &loading_source);
                                     SDL_RenderCopy(renderer, chargement, &loading_source, &menu_dest);
                                     SDL_RenderPresent(renderer);
@@ -266,7 +266,7 @@ int main() {
                                     SDL_RenderCopy(renderer, chargement, &loading_source, &menu_dest);
                                     SDL_RenderPresent(renderer);
                                     SDL_Delay(50);
-                                }
+                                }*/
                                 if (SELECTED == MAP2) Charger_Monde_Physique(&monde,&lvl_neon_city,&contexte);
                                 else Charger_Monde_Physique(&monde,&lvl_ferme,&contexte);
                                 MENU = JEU;
@@ -497,7 +497,7 @@ int main() {
 
             mesure_dt2 = SDL_GetTicks();
             if (mesure_dt < 0) mesure_dt = mesure_dt2;
-            int score = Calculer_Monde_Physique(&monde, INPUT, mesure_dt2 - mesure_dt); // calcule du monde physique
+            long long int score = Calculer_Monde_Physique(&monde, INPUT, mesure_dt2 - mesure_dt); // calcule du monde physique
             if (score > 0) {
                 // fin du jeu (menu game over)
                 Decharger_Monde_Physique(&monde);
