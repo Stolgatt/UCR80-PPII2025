@@ -161,14 +161,27 @@ int main() {
     long long temps_ecoule_fps = SDL_GetTicks();
 #endif
 
+    //Initialisation affichage du score final
+    SDL_Surface *currentTime_surface = NULL;
+    SDL_Surface *bestTime_surface = NULL;
+    //Initialisation des texture correspondantes aux surfaces
+    SDL_Texture *currentTime_texture = NULL;
+    SDL_Texture *bestTime_texture = NULL;
+
+    SDL_Rect score_quad;
+
+    //Meilleurs temps
+    int best_times[NUM_MAPS];
+
+
     //Ecran titre
-    /*for (int i = 0; i <= 255; i+=5){
+    for (int i = 0; i <= 255; i+=50){
         choix_page_menu(1, 0, &titre_source);
         SDL_SetTextureAlphaMod(titre, i);
         SDL_RenderCopy(renderer, titre, &titre_source, &menu_dest);
         SDL_RenderPresent(renderer);
         SDL_Delay(70);
-    }*/
+    }
 
     // Jouer la musique indéfiniment
     Mix_PlayChannel(0, SONS[0], -1);
@@ -252,7 +265,7 @@ int main() {
                         case ACCUEIL:
                             if EST_DANS_CLICKZONE(EVENT.button,clickZoneStart) {
                                 //Loading screen
-                                /*for (int i = 0; i <= 10; i++){
+                                for (int i = 0; i <= 2; i++){
                                     choix_page_menu(4, 0, &loading_source);
                                     SDL_RenderCopy(renderer, chargement, &loading_source, &menu_dest);
                                     SDL_RenderPresent(renderer);
@@ -272,7 +285,7 @@ int main() {
                                     SDL_RenderCopy(renderer, chargement, &loading_source, &menu_dest);
                                     SDL_RenderPresent(renderer);
                                     SDL_Delay(50);
-                                }*/
+                                }
                                 if (SELECTED == MAP2) Charger_Monde_Physique(&monde,&lvl_neon_city,&contexte);
                                 else Charger_Monde_Physique(&monde,&lvl_ferme,&contexte);
                                 MENU = JEU;
@@ -354,12 +367,21 @@ int main() {
                                 MENU = JEU;
                                 JEU_TOURNE = 1;
                                 mesure_dt = -1;
+                                SDL_DestroyTexture(currentTime_texture);
+                                SDL_FreeSurface(currentTime_surface);
+                                SDL_DestroyTexture(bestTime_texture);
+                                SDL_FreeSurface(bestTime_surface);
                                 for (unsigned int i=0; i<sizeof(INPUT)/sizeof(short int); ++i) { INPUT[i] = 0; }
                             }
                             else if EST_DANS_CLICKZONE(EVENT.button,clickZoneGOMenu) {
                                 choix_page_menu(3,0,&menu_source);
                                 menu_texture = page_accueil;
-                                MENU = ACCUEIL; }
+                                MENU = ACCUEIL; 
+                                SDL_DestroyTexture(currentTime_texture);
+                                SDL_FreeSurface(currentTime_surface);
+                                SDL_DestroyTexture(bestTime_texture);
+                                SDL_FreeSurface(bestTime_surface);
+                            }
                             else
                                 choix_page_menu(2,0,&menu_source);
                             break;
@@ -381,6 +403,21 @@ int main() {
                     curseur_dest.x = positionCurseur.x + (positionCurseur.w - positionCurseur.x)*((float)MUSICS_VOLUME)/MAX_VOLUME - curseur_dest.w/2;
                     curseur_dest.y = positionCurseur.h - curseur_dest.h/2;
                     SDL_RenderCopy(renderer,curseur,NULL,&curseur_dest);
+                    break;
+                case GAME_OVER:
+                    //Affichage de l'écran de fin de course et du score par dessus
+                    SDL_RenderCopy(renderer,menu_texture,&menu_source,&menu_dest);
+
+                    int text_x = TX / 2 - 350;                // Position horizontale pour les scores
+                    int current_score_y = (TY / 2) - 50 - 30; // Position verticale pour le score actuel
+                    int best_score_y = (TY / 2) - 50 + 30;    // Position verticale pour le meilleur score
+
+                    initiate_quad(&score_quad, text_x, current_score_y, currentTime_surface->w, currentTime_surface->h);
+                    SDL_RenderCopy(renderer, currentTime_texture, NULL, &score_quad);
+                    initiate_quad(&score_quad, text_x, best_score_y, bestTime_surface->w, bestTime_surface->h);
+                    SDL_RenderCopy(renderer, bestTime_texture, NULL, &score_quad);
+
+                    SDL_RenderPresent(renderer);
                     break;
                 default:
                     SDL_RenderCopy(renderer,menu_texture,&menu_source,&menu_dest);
@@ -517,6 +554,50 @@ int main() {
                 menu_texture = game_over;
                 MENU = GAME_OVER; 
                 JEU_TOURNE = 0;
+                
+                printf("OK here1\n");
+                // Calculer le temps écoulé en minutes et secondes
+                int minutes = score / 60000;
+                int seconds = (score % 60000) / 1000;
+
+                read_best_times(best_times);
+                int meilleurtps_minutes, meilleurtps_secondes;
+                if (SELECTED == MAP2){
+                    meilleurtps_minutes = best_times[1] / 60000;
+                    meilleurtps_secondes = (best_times[1] % 60000) / 1000;
+                    update_best_time(2, score, best_times);
+                }
+                else{
+                    meilleurtps_minutes = best_times[0] / 60000;
+                    meilleurtps_secondes = (best_times[0] % 60000) / 1000;
+                    update_best_time(1, score, best_times);
+                }
+                write_best_times(best_times);
+                
+                printf("OK here2\n");
+                // Afficher le temps écoulé sous forme "mm:ss"
+                char CurrentTimeText[64];
+                char BestTimeText[64];
+                snprintf(CurrentTimeText, sizeof(CurrentTimeText), "Temps : %02d:%02d", minutes, seconds);
+                snprintf(BestTimeText, sizeof(BestTimeText), "Meilleur temps : %02d:%02d", meilleurtps_minutes, meilleurtps_secondes);
+
+                printf("OK here3\n");
+                int text_x = TX / 2 - 350;                // Position horizontale pour les scores
+                int current_score_y = (TY / 2) - 50 - 30; // Position verticale pour le score actuel
+                int best_score_y = (TY / 2) - 50 + 30;    // Position verticale pour le meilleur score
+
+                printf("OK here4\n");
+                //Initialisation des surfaces
+                currentTime_surface = TTF_RenderText_Solid(font48, CurrentTimeText, MENU_COLOR);
+                bestTime_surface = TTF_RenderText_Solid(font48, BestTimeText, MENU_COLOR);
+                //Initialisation des texture correspondantes aux surfaces
+                currentTime_texture = SDL_CreateTextureFromSurface(renderer, currentTime_surface);
+                bestTime_texture = SDL_CreateTextureFromSurface(renderer, bestTime_surface);
+
+                initiate_quad(&score_quad, text_x, current_score_y, currentTime_surface->w, currentTime_surface->h);
+                SDL_RenderCopy(renderer, currentTime_texture, NULL, &score_quad);
+                initiate_quad(&score_quad, text_x, best_score_y, bestTime_surface->w, bestTime_surface->h);
+                SDL_RenderCopy(renderer, bestTime_texture, NULL, &score_quad);
                 continue;
             }
             mesure_dt = mesure_dt2;
