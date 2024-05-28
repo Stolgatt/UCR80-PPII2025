@@ -1,13 +1,7 @@
 #include "main.h"
 
-/* typedef struct {
-    float x, y;
-    SDL_Texture* texture;
-    SDL_Rect rect;
-} Car; */
-
 int main() {
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO) != 0) {
         printf("SDL_Init Error: %s\n", SDL_GetError());
         return 1;
     }
@@ -29,7 +23,6 @@ int main() {
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_SetRenderDrawBlendMode(renderer,SDL_BLENDMODE_BLEND);
-
     // charge les textures du menu UNE FOIS POUR TOUTES
     SDL_Surface* tmp_surface = SDL_LoadBMP("assets/menu/page_accueil.bmp");
     SDL_Texture* page_accueil = SDL_CreateTextureFromSurface(renderer,tmp_surface);
@@ -97,10 +90,8 @@ int main() {
     SDL_Texture* menu_texture = page_accueil;
     SDL_Rect curseur_dest;
     SDL_QueryTexture(curseur,NULL,NULL,&curseur_dest.w,&curseur_dest.h);
-
     SDL_Rect loading_source;
     SDL_Rect titre_source;
-
     //Chargement des textures des maps/véhicules/autres...
     SDL_Texture* TEXTURES[sizeof(TEXTURE_FILES)/sizeof(char*)];
     for (unsigned short int i=0; i<sizeof(TEXTURE_FILES)/sizeof(char*); ++i) {
@@ -110,31 +101,51 @@ int main() {
         SDL_FreeSurface(tmp_surface);
     }
 
-    PARAMETRES_CAMERA param_cam;
-    param_cam.renderer = renderer;
-    param_cam.tmp_text = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_TARGET,8000,4000);
-    SDL_SetTextureBlendMode(param_cam.tmp_text,SDL_BLENDMODE_BLEND);
-    param_cam.tmp_cible = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_TARGET,1.5*TX,1.5*TX);
-    SDL_SetTextureBlendMode(param_cam.tmp_cible,SDL_BLENDMODE_BLEND);
-    param_cam.dimension_cible.x = param_cam.dimension_cible.y = 0;
-    param_cam.dimension_cible.w = TX;
-    param_cam.dimension_cible.h = TY;
-    param_cam.cible = NULL;
-    param_cam.N_MAX = 10000;
+    // initialisation ttf font
+    TTF_Init();
+    // chargement police
+    TTF_Font* font48 = TTF_OpenFont("assets/police/digital-timer.ttf", 48);
+    if (!font48) {
+        printf("Erreur: impossible de charger la police de caractères.\n");
+        return 1;
+    }
 
+    // initialisation sdl mixer
+    Mix_Init(FORMATS_AUDIO);
+    if (Mix_OpenAudio(FREQ_ECHANT, MIX_DEFAULT_FORMAT, 1, T_AUDIO_BUFFER) < 0)
+    {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Erreur initialisation SDL_mixer : %s", Mix_GetError());
+        SDL_Quit();
+    }
+    // allocations channels (+1 pour la musique)
+    Mix_AllocateChannels(NB_CHANNELS+1);
+    // initialisation du volume
+    Mix_Volume(0, MIX_MAX_VOLUME*VOL_INIT_MUS);
+    for (unsigned short int i=1; i<=NB_CHANNELS; ++i) Mix_Volume(i, MIX_MAX_VOLUME*VOL_INIT_CHAN[i]);
+    // chargement des sons
+    Mix_Chunk* SONS[sizeof(SON_FILES)/sizeof(char*)];
+    for (unsigned short int i=0; i<sizeof(SON_FILES)/sizeof(char*); ++i)
+        SONS[i] = Mix_LoadWAV(SON_FILES[i]);
+
+    // initialisation du monde physique
+    CONTEXTE_SDL contexte;
+    contexte.param_cam.renderer = renderer;
+    contexte.param_cam.tmp_text = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_TARGET,8000,4000);
+    SDL_SetTextureBlendMode(contexte.param_cam.tmp_text,SDL_BLENDMODE_BLEND);
+    contexte.param_cam.tmp_cible = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_TARGET,1.5*TX,1.5*TX);
+    SDL_SetTextureBlendMode(contexte.param_cam.tmp_cible,SDL_BLENDMODE_BLEND);
+    contexte.param_cam.dimension_cible.x = contexte.param_cam.dimension_cible.y = 0;
+    contexte.param_cam.dimension_cible.w = TX;
+    contexte.param_cam.dimension_cible.h = TY;
+    contexte.param_cam.cible = NULL;
+    contexte.param_cam.N_MAX = 10000;
+    contexte.tableau_textures = TEXTURES;
+    contexte.police = font48;
+    contexte.nb_channels = NB_CHANNELS;
+    contexte.tableau_sons = SONS;
     MONDE_PHYSIQUE monde;
 
-    VECTEUR2D deplacement_zs,deplacement_qd;//,deplacement_zs2,deplacement_qd2;
-    float speed_coef = 5.;
-
-    /*Car player_car;
-    player_car.x = 0;
-    player_car.y = 0;
-    player_car.texture = car_texture;
-    SDL_QueryTexture(car_texture, NULL, NULL, &player_car.rect.w, &player_car.rect.h);
-    player_car.rect.x = (int)player_car.x;
-    player_car.rect.y = (int)player_car.y;*/
- 
+    // initialisation de la boucle principale
     short int INPUT[16] = { 0 };
     SDL_Event EVENT;
     int loop = 1;
@@ -146,7 +157,6 @@ int main() {
     long long temps_ecoule_fps = SDL_GetTicks();
 #endif
 
-
     //Ecran titre
     for (int i = 0; i <= 255; i+=5){
         choix_page_menu(1, 0, &titre_source);
@@ -155,6 +165,10 @@ int main() {
         SDL_RenderPresent(renderer);
         SDL_Delay(70);
     }
+
+    // Jouer la musique indéfiniment
+    Mix_PlayChannel(0, SONS[0], -1);
+
     while (loop) {
         // gestion des fps (partie 1)
         temps_frame = SDL_GetTicks();
@@ -253,8 +267,8 @@ int main() {
                                     SDL_RenderPresent(renderer);
                                     SDL_Delay(50);
                                 }
-                                if (SELECTED == MAP2) Charger_Monde_Physique(&monde,&lvl_neon_city,&param_cam,TEXTURES);
-                                else Charger_Monde_Physique(&monde,&lvl_ferme,&param_cam,TEXTURES);
+                                if (SELECTED == MAP2) Charger_Monde_Physique(&monde,&lvl_neon_city,&contexte);
+                                else Charger_Monde_Physique(&monde,&lvl_ferme,&contexte);
                                 MENU = JEU;
                                 JEU_TOURNE = 1;
                                 for (unsigned int i=0; i<sizeof(INPUT)/sizeof(short int); ++i) INPUT[i] = 0; }
@@ -321,8 +335,8 @@ int main() {
                             break;
                         case GAME_OVER:
                             if EST_DANS_CLICKZONE(EVENT.button,clickZoneRestart) {
-                                if (SELECTED == MAP2) Charger_Monde_Physique(&monde,&lvl_neon_city,&param_cam,TEXTURES);
-                                else Charger_Monde_Physique(&monde,&lvl_ferme,&param_cam,TEXTURES);
+                                if (SELECTED == MAP2) Charger_Monde_Physique(&monde,&lvl_neon_city,&contexte);
+                                else Charger_Monde_Physique(&monde,&lvl_ferme,&contexte);
                                 MENU = JEU;
                                 JEU_TOURNE = 1;
                                 for (unsigned int i=0; i<sizeof(INPUT)/sizeof(short int); ++i) { INPUT[i] = 0; }
@@ -341,7 +355,7 @@ int main() {
             SDL_RenderClear(renderer);
             switch (MENU) {
                 case PAUSE:
-                    AFFICHAGE_CAMERA(&monde.cam, &monde.scene);
+                    Afficher_Monde_Physique(&monde);
                     SDL_RenderCopy(renderer,menu_texture,&menu_source,&menu_dest);
                     break;
                 case OPTIONS:
@@ -478,48 +492,10 @@ int main() {
                 }
             }
 
-            /*if (INPUT[W]) plan.rotation += 0.05;
-            if (INPUT[X]) plan.rotation -= 0.05;
-            if (INPUT[UP]) cam.latitude += 0.05;
-            if (INPUT[DOWN]) cam.latitude -= 0.05;
-            if (INPUT[LEFT]) cam.longitude += 0.05;
-            if (INPUT[RIGHT]) cam.longitude -= 0.05;
-            cam.latitude = cam.latitude > M_PI / 2 ? M_PI / 2 : cam.latitude; //limite la latitude
-            cam.latitude = cam.latitude < -M_PI / 2 ? -M_PI / 2 : cam.latitude; //limite la latitude
-            sincosf(cam.longitude,&deplacement_qd.y,&deplacement_qd.x);
-            deplacement_qd.x *= speed_coef;     //déplacement de la caméra
-            deplacement_qd.y *= speed_coef;
-           
-            deplacement_zs.x = -deplacement_qd.y;
-            deplacement_zs.y = deplacement_qd.x;*/
-
-            /*deplacement_qd2.x = deplacement_qd.x;
-            deplacement_qd2.y = deplacement_qd.y;
-            deplacement_qd2.x *= sprite[0].speed/2; //déplacement du joueur
-            deplacement_qd2.y *= sprite[0].speed/2;
-
-            deplacement_zs2.x = -deplacement_qd2.y;
-            deplacement_zs2.y = deplacement_qd2.x; */
-
-
-            /*if (INPUT[Z]) {cam.position.x += deplacement_zs.x; cam.position.y += deplacement_zs.y;}
-            if (INPUT[S]) {cam.position.x -= deplacement_zs.x; cam.position.y -= deplacement_zs.y;}
-            if (INPUT[D]) {cam.position.x += deplacement_qd.x; cam.position.y += deplacement_qd.y;}
-            if (INPUT[Q]) {cam.position.x -= deplacement_qd.x; cam.position.y -= deplacement_qd.y;}
-            if (INPUT[E]) cam.position.z += speed_coef;
-            if (INPUT[A]) cam.position.z -= speed_coef;*/
-
-            /*cam.position.x += deplacement_zs2.x; cam.position.y += deplacement_zs2.y; //déplacements du joueur synchronisé avec la caméra
-            sprite[0].position.x += deplacement_zs2.x;sprite[0].position.y += deplacement_zs2.y;
-
-            if (INPUT[O] && sprite[0].speed < sprite[0].max_speed && (SDL_GetTicks() - temps_ecoule_fps >= 990)) {sprite[0].speed += 1;printf("Speed up\n");}
-            if (INPUT[L] && sprite[0].speed > 0 && (SDL_GetTicks() - temps_ecoule_fps >= 990)) {sprite[0].speed -= 1;}
-            if (INPUT[M]) {cam.longitude -= 0.02;}
-            if (INPUT[K]) {cam.longitude += 0.02;}*/
-
             mesure_dt2 = SDL_GetTicks();
             if (mesure_dt < 0) mesure_dt = mesure_dt2;
-            if (Calculer_Monde_Physique(&monde, INPUT, (mesure_dt2 - mesure_dt)/1000.)) { // calcule du monde physique
+            int score = Calculer_Monde_Physique(&monde, INPUT, mesure_dt2 - mesure_dt); // calcule du monde physique
+            if (score > 0) {
                 // fin du jeu (menu game over)
                 Decharger_Monde_Physique(&monde);
                 choix_page_menu(2,0,&menu_source);
@@ -531,7 +507,7 @@ int main() {
             mesure_dt = mesure_dt2;
 
             SDL_RenderClear(renderer);
-            AFFICHAGE_CAMERA(&monde.cam, &monde.scene);
+            Afficher_Monde_Physique(&monde);
             SDL_RenderPresent(renderer);
         }
 
@@ -547,10 +523,18 @@ int main() {
         while ((temps_frame2 = SDL_GetTicks() - temps_frame) <= DUREE_FRAME) SDL_Delay(DUREE_FRAME - temps_frame2);
     }
 
+    // tout décharger
     if (JEU_TOURNE)
         Decharger_Monde_Physique(&monde);
     for (unsigned short int i=0; i<sizeof(TEXTURE_FILES)/sizeof(char*); ++i)
         SDL_DestroyTexture(TEXTURES[i]);
+    Mix_HaltChannel(-1);
+    for (unsigned short int i=0; i<sizeof(SON_FILES)/sizeof(char*); ++i)
+        Mix_FreeChunk(SONS[i]);
+    Mix_CloseAudio();
+    Mix_Quit();
+    TTF_CloseFont(font48);
+    TTF_Quit();
     SDL_DestroyTexture(game_over);
     SDL_DestroyTexture(titre);
     SDL_DestroyTexture(chargement);
@@ -559,8 +543,8 @@ int main() {
     SDL_DestroyTexture(options);
     SDL_DestroyTexture(pause);
     SDL_DestroyTexture(curseur);
-    SDL_DestroyTexture(param_cam.tmp_text);
-    SDL_DestroyTexture(param_cam.tmp_cible);
+    SDL_DestroyTexture(contexte.param_cam.tmp_text);
+    SDL_DestroyTexture(contexte.param_cam.tmp_cible);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();

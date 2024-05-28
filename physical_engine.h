@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <SDL2/SDL.h>
+#include <SDL_mixer.h>
+#include <SDL_ttf.h>
 #include "engine_common.h"
 #include "graphical_engine.h"
 
@@ -64,6 +66,17 @@ struct MONDE_PHYSIQUE {
 	// la partie graphique
 	CAMERA cam;
 	SCENE scene; 
+	TTF_Font* police;
+
+	// la partie audio
+	unsigned short int nb_channels;
+	Mix_Chunk** tableau_sons;
+
+	// la partie timer
+	unsigned long long timer;
+
+	// la partie minimap
+	SDL_Texture* minimap;
 
 };
 typedef struct MONDE_PHYSIQUE MONDE_PHYSIQUE;
@@ -115,8 +128,24 @@ struct NIVEAU {
 	float l;
 	float h;
 
+	// minimap
+	unsigned short int minimap;
+
 };
 typedef struct NIVEAU NIVEAU;
+
+struct CONTEXTE_SDL {
+
+	// partie graphique
+	PARAMETRES_CAMERA param_cam;
+	SDL_Texture** tableau_textures;
+	TTF_Font* police;
+	// partie audio
+	unsigned short int nb_channels;
+	Mix_Chunk** tableau_sons;
+
+};
+typedef struct CONTEXTE_SDL CONTEXTE_SDL;
 
 enum { UP = 0, DOWN, LEFT, RIGHT, Z, Q, S, D, A, E, W, X, O, K, L, M};
 
@@ -157,8 +186,9 @@ inline SEGMENT2D CREA_SEGMENT_2D(float x1, float x2, float y1, float y2) {
 	return res;
 }
 
-void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const PARAMETRES_CAMERA* param_cam, SDL_Texture *const* tableau_textures);
+void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const CONTEXTE_SDL* contexte);
+void Afficher_Monde_Physique(MONDE_PHYSIQUE* monde);
 void Decharger_Monde_Physique(MONDE_PHYSIQUE* monde);
-short int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* INPUT, const float dt);
+short int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* INPUT, const unsigned long long dt);
 
 #endif

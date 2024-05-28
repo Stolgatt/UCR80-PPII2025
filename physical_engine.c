@@ -1,6 +1,10 @@
 #include "physical_engine.h"
 
-void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const PARAMETRES_CAMERA* param_cam, SDL_Texture *const* tableau_textures) {
+void Afficher_Monde_Physique(MONDE_PHYSIQUE* monde) {
+	AFFICHAGE_CAMERA(&monde->cam,&monde->scene);
+}
+
+void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const CONTEXTE_SDL* contexte) {
 
 	// initialisation segments et grille
 	monde->nb_colonnes = niveau->nb_colonnes;
@@ -68,7 +72,7 @@ void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const P
 	PLAN_HORIZONTAL* ptr_plan_prev = NULL;
 	for (unsigned short int i=0; i<niveau->nb_sols; ++i) {
 		*ptr_plan = malloc(sizeof(PLAN_HORIZONTAL));
-		(*ptr_plan)->texture = tableau_textures[niveau->texture_ids_sols[i]];
+		(*ptr_plan)->texture = contexte->tableau_textures[niveau->texture_ids_sols[i]];
 		(*ptr_plan)->rotation = niveau->angles_initiaux_sols[i];
 		(*ptr_plan)->echelle = niveau->echelles_sols[i];
 		(*ptr_plan)->position.x = niveau->positions_initiales_sols[i].x;
@@ -91,12 +95,12 @@ void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const P
 
 	// initialisation sprites
 	for (unsigned int i=0; i<niveau->nb_decors; ++i,++index_sprites) {
-		ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].texture = tableau_textures[niveau->texture_ids_dec[i]];
+		ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].texture = contexte->tableau_textures[niveau->texture_ids_dec[i]];
 		ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].echelle = niveau->echelles_dec[i];
 		ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].position = niveau->positions_dec[i];
 		// TODO gestion animation/spritesheets
 		ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].source.x = ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].source.y = 0;
-		SDL_QueryTexture(tableau_textures[niveau->texture_ids_dec[i]],NULL,NULL,&ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].source.w,&ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].source.h);
+		SDL_QueryTexture(contexte->tableau_textures[niveau->texture_ids_dec[i]],NULL,NULL,&ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].source.w,&ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].source.h);
 	}
 
 	// initialisation voitures
@@ -117,7 +121,7 @@ void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const P
 		monde->voitures[i].vitesse = 0.;
 		monde->voitures[i].sprite = ptr_plan_prev->sprites_au_dessus->sprites+index_sprites;
 		index_sprites++;
-		monde->voitures[i].sprite->texture = tableau_textures[niveau->texture_ids_voit[i]];
+		monde->voitures[i].sprite->texture = contexte->tableau_textures[niveau->texture_ids_voit[i]];
 		monde->voitures[i].sprite->echelle = niveau->echelles_voit[i];
 		monde->voitures[i].sprite->position = niveau->positions_initiales_voit[i];
 		// TODO source rectangle (animation voiture à gauche voiture à droite)
@@ -137,14 +141,14 @@ void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const P
 	}
 
 	// initialisation camera
-	monde->cam.renderer = param_cam->renderer;
-	monde->cam.tmp_text = param_cam->tmp_text;
-	monde->cam.tmp_cible = param_cam->tmp_cible;
-	monde->cam.dimension_cible = param_cam->dimension_cible;
-	monde->cam.cible = param_cam->cible;
-	monde->cam.N_MAX = param_cam->N_MAX;
-	monde->cam.tableau_z = calloc(param_cam->N_MAX,sizeof(Z_SPRITE));
-	monde->cam.tableau_p = calloc(param_cam->N_MAX,sizeof(SPRITE_PROJETE));
+	monde->cam.renderer = contexte->param_cam.renderer;
+	monde->cam.tmp_text = contexte->param_cam.tmp_text;
+	monde->cam.tmp_cible = contexte->param_cam.tmp_cible;
+	monde->cam.dimension_cible = contexte->param_cam.dimension_cible;
+	monde->cam.cible = contexte->param_cam.cible;
+	monde->cam.N_MAX = contexte->param_cam.N_MAX;
+	monde->cam.tableau_z = calloc(contexte->param_cam.N_MAX,sizeof(Z_SPRITE));
+	monde->cam.tableau_p = calloc(contexte->param_cam.N_MAX,sizeof(SPRITE_PROJETE));
 	monde->cam.roulis = 0.;
 	monde->cam.latitude = CAM_LAT;
 	monde->cam.longitude = niveau->angles_initiaux_voit[0];
@@ -153,7 +157,18 @@ void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const P
 	monde->cam.position.z = HAUTEUR_CAMERA;
 	monde->cam.offset_horizontal = monde->cam.offset_vertical = 0.;
 	monde->cam.distance_ecran = DIST_CAM_ECRAN;
-	monde->cam.echelle_ecran = tanf(SEMI_FOV)*DIST_CAM_ECRAN*2./param_cam->dimension_cible.w;
+	monde->cam.echelle_ecran = tanf(SEMI_FOV)*DIST_CAM_ECRAN*2./contexte->param_cam.dimension_cible.w;
+
+	// initialisation police + audio
+	monde->police = contexte->police;
+	monde->nb_channels = contexte->nb_channels;
+	monde->tableau_sons = contexte->tableau_sons;
+
+	// initialisation timer
+	monde->timer = 0;
+
+	// initialisation minimap
+	monde->minimap = contexte->tableau_textures[niveau->minimap];
 
 }
 
@@ -183,7 +198,12 @@ void Decharger_Monde_Physique(MONDE_PHYSIQUE* monde) {
 
 }
 
-short int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* INPUT, const float dt) {
+short int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* INPUT, const unsigned long long dt) {
+
+	// gestion checkpoints
+
+	// gestion timer
+	monde->timer += dt;
 
 	// parcours des voitures et calcul du mouvement final en fct du mouvement désiré (juste en dessous) ET DES COLLISIONS
 	for (unsigned short int i=0; i<monde->nb_voitures; ++i) {
