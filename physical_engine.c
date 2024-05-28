@@ -6,7 +6,7 @@ void Afficher_Monde_Physique(MONDE_PHYSIQUE* monde) {
 	// timer
 	char timerText[22];
     snprintf(timerText, sizeof(timerText), "%02lld:%02lld:%02lld", monde->timer/60000, (monde->timer % 60000)/1000, (monde->timer % 1000)/10 );
-	SDL_Surface* tmp_surf = TTF_RenderText_Blended(monde->police, timerText, monde->timer_color);
+	SDL_Surface* tmp_surf = TTF_RenderText_Solid(monde->police, timerText, monde->timer_color);
 	SDL_Texture* tmp_text = SDL_CreateTextureFromSurface(monde->cam.renderer,tmp_surf);
 	SDL_Rect tmp_rect;
 	tmp_rect.x = monde->timer_position.x;
@@ -334,5 +334,5 @@ long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* IN
 #endif
 
 	// renvoie 0 si le jeu continue de tourner, renvoie 1 si la partie est terminée
-	return 58000;
+	return 0;
 }
