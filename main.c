@@ -48,6 +48,9 @@ int main() {
     tmp_surface = SDL_LoadBMP("assets/menu/game_over.bmp");
     SDL_Texture* game_over = SDL_CreateTextureFromSurface(renderer,tmp_surface);
     SDL_FreeSurface(tmp_surface);
+    tmp_surface = SDL_LoadBMP("assets/menu/leaderboard.bmp");
+    SDL_Texture* leaderboard = SDL_CreateTextureFromSurface(renderer,tmp_surface);
+    SDL_FreeSurface(tmp_surface);
     // pour l'interactivité avec les boutons du menu
     // page accueil
     SDL_Rect clickZoneStart = { .x = 827, .y = 138, .w = 1115, .h = 271 };
@@ -60,6 +63,7 @@ int main() {
     SDL_Rect clickZoneMap2 = { .x = 670, .y = 695, .w = 817, .h = 754 };
     SDL_Rect clickZoneSelectBack = {1648,940,1794,999};
     // leaderboard
+    SDL_Rect clickZoneLeaderboardBack = {1660,917,1806,976};
     // options
     SDL_Rect clickZoneSoundsM = {816,470,850,504};
     SDL_Rect clickZoneSoundsP = {1521,470,1555,504};
@@ -208,6 +212,8 @@ int main() {
                                     case MAP2: choix_page_menu(4, 3, &menu_source); break; }
                             break;
                         case LEADERBOARD:
+                            if EST_DANS_CLICKZONE(EVENT.button,clickZoneLeaderboardBack)
+                                choix_page_menu(2,0,&menu_source);
                             break;
                         case OPTIONS:
                             if EST_DANS_CLICKZONE(EVENT.button,clickZoneSoundsM) {
@@ -280,8 +286,10 @@ int main() {
                                     case MAP2: choix_page_menu(4, 7, &menu_source); break; }
                                 menu_texture = select_map;
                                 MENU = SELECTION; }
-                            else if EST_DANS_CLICKZONE(EVENT.button,clickZoneLeaderboard)
-                                choix_page_menu(3, 0, &menu_source);
+                            else if EST_DANS_CLICKZONE(EVENT.button,clickZoneLeaderboard) {
+                                choix_page_menu(2, 0, &menu_source);
+                                menu_texture = leaderboard;
+                                MENU = LEADERBOARD; }
                             else if EST_DANS_CLICKZONE(EVENT.button,clickZoneOptions) {
                                 choix_page_menu(3, 0, &menu_source);
                                 menu_texture = options;
@@ -302,6 +310,10 @@ int main() {
                                 case MAP2: choix_page_menu(4, 7, &menu_source); break; }
                             break;
                         case LEADERBOARD:
+                            if EST_DANS_CLICKZONE(EVENT.button,clickZoneLeaderboardBack) {
+                                choix_page_menu(3, 0, &menu_source);
+                                menu_texture = page_accueil;
+                                MENU = ACCUEIL; }
                             break;
                         case OPTIONS:
                             if EST_DANS_CLICKZONE(EVENT.button,clickZoneOptionsBack) {
@@ -538,6 +550,7 @@ int main() {
     Mix_Quit();
     TTF_CloseFont(font48);
     TTF_Quit();
+    SDL_DestroyTexture(leaderboard);
     SDL_DestroyTexture(game_over);
     SDL_DestroyTexture(titre);
     SDL_DestroyTexture(chargement);
