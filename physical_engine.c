@@ -1,7 +1,22 @@
 #include "physical_engine.h"
 
 void Afficher_Monde_Physique(MONDE_PHYSIQUE* monde) {
+	// affichage monde
 	AFFICHAGE_CAMERA(&monde->cam,&monde->scene);
+	// timer
+	char timerText[22];
+    snprintf(timerText, sizeof(timerText), "%02lld:%02lld:%02lld", monde->timer/60000, (monde->timer % 60000)/1000, (monde->timer % 1000)/10 );
+	SDL_Surface* tmp_surf = TTF_RenderText_Blended(monde->police, timerText, monde->timer_color);
+	SDL_Texture* tmp_text = SDL_CreateTextureFromSurface(monde->cam.renderer,tmp_surf);
+	SDL_Rect tmp_rect;
+	tmp_rect.x = monde->timer_position.x;
+	tmp_rect.y = monde->timer_position.y;
+	SDL_QueryTexture(tmp_text,NULL,NULL,&tmp_rect.w,&tmp_rect.h);
+	SDL_RenderCopy(monde->cam.renderer,tmp_text,NULL,&tmp_rect);
+	SDL_FreeSurface(tmp_surf);
+	SDL_DestroyTexture(tmp_text);
+	// affichage minimap
+	SDL_RenderCopy(monde->cam.renderer,monde->minimap,NULL,&monde->minimap_rect);
 }
 
 void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const CONTEXTE_SDL* contexte) {
@@ -166,9 +181,16 @@ void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const C
 
 	// initialisation timer
 	monde->timer = 0;
+	monde->timer_position = contexte->timer_position;
+	monde->timer_color = contexte->timer_color;
 
 	// initialisation minimap
 	monde->minimap = contexte->tableau_textures[niveau->minimap];
+	monde->minimap_rect = contexte->minimap_rect;
+
+	// initialisation checkpoint
+	monde->nb_checkpoints = niveau->nb_checkpoints;
+	monde->tableau_checkpoints = niveau->tableau_checkpoints;
 
 }
 

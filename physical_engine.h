@@ -37,6 +37,13 @@ struct VOITURE {
 };
 typedef struct VOITURE VOITURE;
 
+typedef struct _CHECKPOINT{
+    float x;
+    float y;
+    float dx;
+    float dy;
+} CHECKPOINT;
+
 struct CASE_GRILLE {
 
 	unsigned short int nb_voitures;
@@ -67,6 +74,9 @@ struct MONDE_PHYSIQUE {
 	CAMERA cam;
 	SCENE scene; 
 	TTF_Font* police;
+	SDL_Rect minimap_rect;
+	SDL_Point timer_position;
+	SDL_Color timer_color;
 
 	// la partie audio
 	unsigned short int nb_channels;
@@ -77,6 +87,10 @@ struct MONDE_PHYSIQUE {
 
 	// la partie minimap
 	SDL_Texture* minimap;
+
+	// partie checkpoints
+	unsigned int nb_checkpoints;
+	const CHECKPOINT* tableau_checkpoints;
 
 };
 typedef struct MONDE_PHYSIQUE MONDE_PHYSIQUE;
@@ -128,6 +142,10 @@ struct NIVEAU {
 	float l;
 	float h;
 
+	// checkpoints
+	unsigned int nb_checkpoints;
+	CHECKPOINT* tableau_checkpoints;
+
 	// minimap
 	unsigned short int minimap;
 
@@ -140,6 +158,9 @@ struct CONTEXTE_SDL {
 	PARAMETRES_CAMERA param_cam;
 	SDL_Texture** tableau_textures;
 	TTF_Font* police;
+	SDL_Rect minimap_rect;
+	SDL_Point timer_position;
+	SDL_Color timer_color;
 	// partie audio
 	unsigned short int nb_channels;
 	Mix_Chunk** tableau_sons;
@@ -148,6 +169,8 @@ struct CONTEXTE_SDL {
 typedef struct CONTEXTE_SDL CONTEXTE_SDL;
 
 enum { UP = 0, DOWN, LEFT, RIGHT, Z, Q, S, D, A, E, W, X, O, K, L, M};
+
+#define Dans_Checkpoint(chose,checkpoint) ((chose).x >= (checkpoint).x && (chose).x <= (checkpoint).x + (checkpoint).dx && (chose).y >= (checkpoint).y && (chose).y <= (checkpoint).y + (checkpoint).dy)
 
 inline short int Test_Collision_Voitures(const VOITURE* v1, const VOITURE* v2, VECTEUR2D* direction) { // play ultrakill
 	for (unsigned int i=0; i<v1->nombre_disques; ++i) {

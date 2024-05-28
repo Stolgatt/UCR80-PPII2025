@@ -76,12 +76,9 @@ int main() {
     // positions du curseur
     SDL_Rect positionCurseur = {910,487,1461,587};
     // initialisation de l'état du jeu
-    enum { ACCUEIL = 0, SELECTION, LEADERBOARD, OPTIONS, PAUSE, GAME_OVER, JEU };
+    short int SELECTED = DEFAULT;
     short int MENU = ACCUEIL;
     short int JEU_TOURNE = 0;
-    enum { DEFAULT, MAP1, MAP2};
-    short int SELECTED = DEFAULT;
-    const short int MAX_VOLUME = 10;
     short int SOUNDS_VOLUME = MAX_VOLUME;
     short int MUSICS_VOLUME = MAX_VOLUME;
     SDL_Rect menu_source;
@@ -143,6 +140,9 @@ int main() {
     contexte.police = font48;
     contexte.nb_channels = NB_CHANNELS;
     contexte.tableau_sons = SONS;
+    contexte.minimap_rect = MINIMAP_RECT;
+    contexte.timer_position.x = contexte.timer_position.y = 10;
+    contexte.timer_color = TIMER_COLOR;
     MONDE_PHYSIQUE monde;
 
     // initialisation de la boucle principale
@@ -271,6 +271,7 @@ int main() {
                                 else Charger_Monde_Physique(&monde,&lvl_ferme,&contexte);
                                 MENU = JEU;
                                 JEU_TOURNE = 1;
+                                mesure_dt = -1;
                                 for (unsigned int i=0; i<sizeof(INPUT)/sizeof(short int); ++i) INPUT[i] = 0; }
                             else if EST_DANS_CLICKZONE(EVENT.button,clickZoneSelectMap) {
                                 switch (SELECTED) {
@@ -319,7 +320,8 @@ int main() {
                         case PAUSE:
                             if EST_DANS_CLICKZONE(EVENT.button,clickZoneContinue) {
                                 MENU = JEU;
-                                for (unsigned int i=0; i<sizeof(INPUT)/sizeof(short int); ++i) INPUT[i] = 0; }
+                                for (unsigned int i=0; i<sizeof(INPUT)/sizeof(short int); ++i) INPUT[i] = 0; 
+                                mesure_dt = -1; }
                             else if EST_DANS_CLICKZONE(EVENT.button,clickZonePauseOptions) {
                                 choix_page_menu(3,0,&menu_source);
                                 menu_texture = options;
@@ -339,6 +341,7 @@ int main() {
                                 else Charger_Monde_Physique(&monde,&lvl_ferme,&contexte);
                                 MENU = JEU;
                                 JEU_TOURNE = 1;
+                                mesure_dt = -1;
                                 for (unsigned int i=0; i<sizeof(INPUT)/sizeof(short int); ++i) { INPUT[i] = 0; }
                             }
                             else if EST_DANS_CLICKZONE(EVENT.button,clickZoneGOMenu) {

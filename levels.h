@@ -38,6 +38,8 @@ static float ty4_ferme[] = {2347, 2360, 2397, 2416, 2489, 2505, 2517, 2541, 2579
 static unsigned int t_tab_ferme[] = {sizeof(tx1_ferme)/sizeof(float),sizeof(tx2_ferme)/sizeof(float),sizeof(tx3_ferme)/sizeof(float),sizeof(tx4_ferme)/sizeof(float)};
 static float* tx_ferme[] = {tx1_ferme,tx2_ferme,tx3_ferme,tx4_ferme};
 static float* ty_ferme[] = {ty1_ferme,ty2_ferme,ty3_ferme,ty4_ferme};
+// checkpoints
+static CHECKPOINT checkpoints_ferme[] = {{-20,1026,30,230},{127,-20,200,30},{-440,-1427,30,198},{-319,547,209,31}};
 NIVEAU lvl_ferme = {
 	.nb_voitures = sizeof(angles_ini_voit_ferme)/sizeof(float),
 	.positions_initiales_voit = pos_ini_voit_ferme,
@@ -58,6 +60,9 @@ NIVEAU lvl_ferme = {
 	.tailles_tableaux = t_tab_ferme,
 	.tableaux_x = tx_ferme,
 	.tableaux_y = ty_ferme,
+
+	.nb_checkpoints = sizeof(checkpoints_ferme)/sizeof(CHECKPOINT),
+	.tableau_checkpoints = checkpoints_ferme,
 
 	.nb_lignes = 50,
 	.nb_colonnes = 50,
