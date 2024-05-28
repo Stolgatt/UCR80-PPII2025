@@ -6,7 +6,7 @@
 #include "engine_common.h"
 #include "graphical_engine.h"
 #include "physical_engine.h"
-// #include "interface_utilisateur.h"
+#include "score.h"
 
 #include "levels.h"
 
