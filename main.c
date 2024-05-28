@@ -75,8 +75,8 @@ int main() {
     SDL_Rect clickZonePauseOptions = {814,488,1106,593};
     SDL_Rect clickZonePauseMenu = {864,620,1057,725};
     // game_over
-    SDL_Rect clickZoneRestart = {814,782,1106,887};
-    SDL_Rect clickZoneGOMenu = {864,915,1057,1020};
+    SDL_Rect clickZoneRestart = {814,742,1106,847};
+    SDL_Rect clickZoneGOMenu = {864,875,1057,980};
     // positions du curseur
     SDL_Rect positionCurseur = {910,487,1461,587};
     // initialisation de l'état du jeu
@@ -93,6 +93,20 @@ int main() {
     SDL_QueryTexture(curseur,NULL,NULL,&curseur_dest.w,&curseur_dest.h);
     SDL_Rect loading_source;
     SDL_Rect titre_source;
+    //Initialisation affichage du score final
+    SDL_Surface *currentTime_surface = NULL;
+    SDL_Surface *bestTime_surface = NULL;
+    //Initialisation des texture correspondantes aux surfaces
+    SDL_Texture *currentTime_texture = NULL;
+    SDL_Texture *bestTime_texture = NULL;
+    SDL_Rect score_quad;
+    //Meilleurs temps
+    long long int best_times[NUM_MAPS];
+    read_best_times(best_times);
+    // intialisation affichage leaderboard
+    SDL_Texture* textures_leaderboard[NUM_MAPS];
+    SDL_Rect rects_leaderboard[NUM_MAPS];
+    for (unsigned short int i=0;i<NUM_MAPS; ++i) {rects_leaderboard[i].x = 564; rects_leaderboard[i].y = 484+i*60; }
     //Chargement des textures des maps/véhicules/autres...
     SDL_Texture* TEXTURES[sizeof(TEXTURE_FILES)/sizeof(char*)];
     for (unsigned short int i=0; i<sizeof(TEXTURE_FILES)/sizeof(char*); ++i) {
@@ -161,27 +175,16 @@ int main() {
     long long temps_ecoule_fps = SDL_GetTicks();
 #endif
 
-    //Initialisation affichage du score final
-    SDL_Surface *currentTime_surface = NULL;
-    SDL_Surface *bestTime_surface = NULL;
-    //Initialisation des texture correspondantes aux surfaces
-    SDL_Texture *currentTime_texture = NULL;
-    SDL_Texture *bestTime_texture = NULL;
-
-    SDL_Rect score_quad;
-
-    //Meilleurs temps
-    int best_times[NUM_MAPS];
 
 
     //Ecran titre
-    for (int i = 0; i <= 255; i+=50){
+    /*for (int i = 0; i <= 250; i+=10){
         choix_page_menu(1, 0, &titre_source);
         SDL_SetTextureAlphaMod(titre, i);
         SDL_RenderCopy(renderer, titre, &titre_source, &menu_dest);
         SDL_RenderPresent(renderer);
         SDL_Delay(70);
-    }
+    }*/
 
     // Jouer la musique indéfiniment
     Mix_PlayChannel(0, SONS[0], -1);
@@ -226,7 +229,7 @@ int main() {
                             break;
                         case LEADERBOARD:
                             if EST_DANS_CLICKZONE(EVENT.button,clickZoneLeaderboardBack)
-                                choix_page_menu(2,0,&menu_source);
+                                choix_page_menu(2,1,&menu_source);
                             break;
                         case OPTIONS:
                             if EST_DANS_CLICKZONE(EVENT.button,clickZoneSoundsM) {
@@ -265,7 +268,7 @@ int main() {
                         case ACCUEIL:
                             if EST_DANS_CLICKZONE(EVENT.button,clickZoneStart) {
                                 //Loading screen
-                                for (int i = 0; i <= 2; i++){
+                                /*for (int i = 0; i <= 4; i++){
                                     choix_page_menu(4, 0, &loading_source);
                                     SDL_RenderCopy(renderer, chargement, &loading_source, &menu_dest);
                                     SDL_RenderPresent(renderer);
@@ -285,7 +288,7 @@ int main() {
                                     SDL_RenderCopy(renderer, chargement, &loading_source, &menu_dest);
                                     SDL_RenderPresent(renderer);
                                     SDL_Delay(50);
-                                }
+                                }*/
                                 if (SELECTED == MAP2) Charger_Monde_Physique(&monde,&lvl_neon_city,&contexte);
                                 else Charger_Monde_Physique(&monde,&lvl_ferme,&contexte);
                                 MENU = JEU;
@@ -302,7 +305,17 @@ int main() {
                             else if EST_DANS_CLICKZONE(EVENT.button,clickZoneLeaderboard) {
                                 choix_page_menu(2, 0, &menu_source);
                                 menu_texture = leaderboard;
-                                MENU = LEADERBOARD; }
+                                MENU = LEADERBOARD;
+                                for (unsigned short int i=0;i<NUM_MAPS; ++i) {
+                                    char temps_texte[35];
+                                    snprintf(temps_texte, sizeof(temps_texte), "%01de course : %02lld:%02lld", i+1, best_times[i]/60000, (best_times[i] % 60000)/1000 );
+                                    SDL_Surface* tmp = TTF_RenderText_Solid(font48, temps_texte, MENU_COLOR);
+                                    textures_leaderboard[i] = SDL_CreateTextureFromSurface(renderer,tmp);
+                                    rects_leaderboard[i].w = tmp->w;
+                                    rects_leaderboard[i].h = tmp->h;
+                                    SDL_FreeSurface(tmp);
+                                }
+                                }
                             else if EST_DANS_CLICKZONE(EVENT.button,clickZoneOptions) {
                                 choix_page_menu(3, 0, &menu_source);
                                 menu_texture = options;
@@ -326,6 +339,8 @@ int main() {
                             if EST_DANS_CLICKZONE(EVENT.button,clickZoneLeaderboardBack) {
                                 choix_page_menu(3, 0, &menu_source);
                                 menu_texture = page_accueil;
+                                for (unsigned short int i=0;i<NUM_MAPS; ++i)
+                                    SDL_DestroyTexture(textures_leaderboard[i]);
                                 MENU = ACCUEIL; }
                             break;
                         case OPTIONS:
@@ -362,6 +377,7 @@ int main() {
                             break;
                         case GAME_OVER:
                             if EST_DANS_CLICKZONE(EVENT.button,clickZoneRestart) {
+                                Decharger_Monde_Physique(&monde);
                                 if (SELECTED == MAP2) Charger_Monde_Physique(&monde,&lvl_neon_city,&contexte);
                                 else Charger_Monde_Physique(&monde,&lvl_ferme,&contexte);
                                 MENU = JEU;
@@ -374,6 +390,7 @@ int main() {
                                 for (unsigned int i=0; i<sizeof(INPUT)/sizeof(short int); ++i) { INPUT[i] = 0; }
                             }
                             else if EST_DANS_CLICKZONE(EVENT.button,clickZoneGOMenu) {
+                                Decharger_Monde_Physique(&monde);
                                 choix_page_menu(3,0,&menu_source);
                                 menu_texture = page_accueil;
                                 MENU = ACCUEIL; 
@@ -406,6 +423,7 @@ int main() {
                     break;
                 case GAME_OVER:
                     //Affichage de l'écran de fin de course et du score par dessus
+                    Afficher_Monde_Physique(&monde);
                     SDL_RenderCopy(renderer,menu_texture,&menu_source,&menu_dest);
 
                     int text_x = TX / 2 - 350;                // Position horizontale pour les scores
@@ -416,8 +434,11 @@ int main() {
                     SDL_RenderCopy(renderer, currentTime_texture, NULL, &score_quad);
                     initiate_quad(&score_quad, text_x, best_score_y, bestTime_surface->w, bestTime_surface->h);
                     SDL_RenderCopy(renderer, bestTime_texture, NULL, &score_quad);
-
-                    SDL_RenderPresent(renderer);
+                    break;
+                case LEADERBOARD:
+                    SDL_RenderCopy(renderer,menu_texture,&menu_source,&menu_dest);
+                    for (unsigned int i=0; i<NUM_MAPS; ++i)
+                        SDL_RenderCopy(renderer,textures_leaderboard[i],NULL,rects_leaderboard+i);
                     break;
                 default:
                     SDL_RenderCopy(renderer,menu_texture,&menu_source,&menu_dest);
@@ -549,18 +570,15 @@ int main() {
             long long int score = Calculer_Monde_Physique(&monde, INPUT, mesure_dt2 - mesure_dt); // calcule du monde physique
             if (score > 0) {
                 // fin du jeu (menu game over)
-                Decharger_Monde_Physique(&monde);
                 choix_page_menu(2,0,&menu_source);
                 menu_texture = game_over;
                 MENU = GAME_OVER; 
                 JEU_TOURNE = 0;
                 
-                printf("OK here1\n");
                 // Calculer le temps écoulé en minutes et secondes
                 int minutes = score / 60000;
                 int seconds = (score % 60000) / 1000;
 
-                read_best_times(best_times);
                 int meilleurtps_minutes, meilleurtps_secondes;
                 if (SELECTED == MAP2){
                     meilleurtps_minutes = best_times[1] / 60000;
@@ -574,19 +592,16 @@ int main() {
                 }
                 write_best_times(best_times);
                 
-                printf("OK here2\n");
                 // Afficher le temps écoulé sous forme "mm:ss"
                 char CurrentTimeText[64];
                 char BestTimeText[64];
                 snprintf(CurrentTimeText, sizeof(CurrentTimeText), "Temps : %02d:%02d", minutes, seconds);
                 snprintf(BestTimeText, sizeof(BestTimeText), "Meilleur temps : %02d:%02d", meilleurtps_minutes, meilleurtps_secondes);
 
-                printf("OK here3\n");
                 int text_x = TX / 2 - 350;                // Position horizontale pour les scores
                 int current_score_y = (TY / 2) - 50 - 30; // Position verticale pour le score actuel
                 int best_score_y = (TY / 2) - 50 + 30;    // Position verticale pour le meilleur score
 
-                printf("OK here4\n");
                 //Initialisation des surfaces
                 currentTime_surface = TTF_RenderText_Solid(font48, CurrentTimeText, MENU_COLOR);
                 bestTime_surface = TTF_RenderText_Solid(font48, BestTimeText, MENU_COLOR);
@@ -631,6 +646,18 @@ int main() {
     Mix_Quit();
     TTF_CloseFont(font48);
     TTF_Quit();
+    switch (MENU) {
+        case GAME_OVER:
+            SDL_DestroyTexture(currentTime_texture);
+            SDL_FreeSurface(currentTime_surface);
+            SDL_DestroyTexture(bestTime_texture);
+            SDL_FreeSurface(bestTime_surface);
+            break;
+        case LEADERBOARD:
+            for (unsigned short int i=0;i<NUM_MAPS; ++i)
+                SDL_DestroyTexture(textures_leaderboard[i]);
+            break;
+    }
     SDL_DestroyTexture(leaderboard);
     SDL_DestroyTexture(game_over);
     SDL_DestroyTexture(titre);
