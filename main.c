@@ -317,7 +317,7 @@ int main() {
                                 MENU = LEADERBOARD;
                                 for (unsigned short int i=0;i<NUM_MAPS; ++i) {
                                     char temps_texte[35];
-                                    snprintf(temps_texte, sizeof(temps_texte), "%01de course : %02lld:%02lld", i+1, best_times[i]/60000, (best_times[i] % 60000)/1000 );
+                                    snprintf(temps_texte, sizeof(temps_texte), "%s : %02lld:%02lld", NOM_MAPS[i], best_times[i]/60000, (best_times[i] % 60000)/1000 );
                                     SDL_Surface* tmp = TTF_RenderText_Solid(font48, temps_texte, MENU_COLOR);
                                     textures_leaderboard[i] = SDL_CreateTextureFromSurface(renderer,tmp);
                                     rects_leaderboard[i].w = tmp->w;

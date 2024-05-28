@@ -44,3 +44,4 @@ inline void choix_page_menu(int n_colonnes, int index, SDL_Rect* source) {
     source->y = source->h*(index/n_colonnes);
 }
 
+char* NOM_MAPS[NUM_MAPS] = {"Piste Moo-Moo", "Neon Rush"};
