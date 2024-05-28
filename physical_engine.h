@@ -9,7 +9,7 @@
 #include "engine_common.h"
 #include "graphical_engine.h"
 
-#define FPS_CONTROLS
+// #define FPS_CONTROLS
 
 struct VOITURE {
 
@@ -40,8 +40,7 @@ typedef struct VOITURE VOITURE;
 typedef struct _CHECKPOINT{
     float x;
     float y;
-    float dx;
-    float dy;
+    float r
 } CHECKPOINT;
 
 struct CASE_GRILLE {
@@ -97,7 +96,7 @@ typedef struct MONDE_PHYSIQUE MONDE_PHYSIQUE;
 
 // defines liés au fonctionnement de la caméra par rapport au joueur
 #define CAM_LAT (-M_PI/8.)
-#define DIST_CAM_VOITURE 35.
+#define DIST_CAM_VOITURE 50.
 #define HAUTEUR_CAMERA 35.
 #define SEMI_FOV (M_PI/4.)
 #define DIST_CAM_ECRAN 5.
@@ -135,6 +134,7 @@ struct NIVEAU {
 	unsigned int* tailles_tableaux;
 	float** tableaux_x;
 	float** tableaux_y;
+	short int* sens;
 
 	// grille
 	unsigned int nb_lignes;
@@ -188,7 +188,10 @@ inline short int Test_Collision_Voitures(const VOITURE* v1, const VOITURE* v2, V
 
 inline short int Test_Collision_Voiture_Segment(const VOITURE* v1, const SEGMENT2D* segment, const VECTEUR2D* pos_segment, VECTEUR2D* direction) {
 	for (unsigned int i=0; i<v1->nombre_disques; ++i) {
-		if (INTERSECTION_SEGMENT2D(segment,pos_segment,v1->tableau_rayons+i,v1->tableau_centres+i)) {
+		VECTEUR2D centre = v1->tableau_centres[i];
+		centre.x += v1->position.x;
+		centre.y += v1->position.y;
+		if (INTERSECTION_SEGMENT2D(segment,pos_segment,v1->tableau_rayons+i,&centre)) {
 			// normale = rotation de 90° SENS TRIGONOMETRIQUE (sur la gauche) du vecteur
 			direction->x = -segment->direction.y;
 			direction->y = segment->direction.x;

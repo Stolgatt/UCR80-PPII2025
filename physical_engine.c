@@ -59,23 +59,42 @@ void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const C
 	}
 	// deuxième parcours pour calculer les segments
 	for (unsigned short int k=0; k<niveau->nb_tableaux; ++k) {
-		for (unsigned int i=0; i<niveau->tailles_tableaux[k]; ++i) {
-			// détermination bouding box du segment
-			float max_x = niveau->tableaux_x[k][i] > niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]] ? niveau->tableaux_x[k][i] : niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]];
-			float max_y = niveau->tableaux_y[k][i] > niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]] ? niveau->tableaux_y[k][i] : niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]];
-			float min_x = niveau->tableaux_x[k][i] < niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]] ? niveau->tableaux_x[k][i] : niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]];
-			float min_y = niveau->tableaux_y[k][i] < niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]] ? niveau->tableaux_y[k][i] : niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]];
-			// ajout du segment pour chaque case de la grille intersectant cette bounding box
-			for (unsigned int col=min_x*monde->nb_colonnes/monde->l; col<max_x*monde->nb_colonnes/monde->l; ++col) {
-				for (unsigned int lig=min_y*monde->nb_lignes/monde->h; lig<max_y*monde->nb_lignes/monde->h; ++lig) {
-					monde->grille_pos_segments[monde->grille[lig*monde->nb_colonnes + col].indice_debut_segments + monde->grille[lig*monde->nb_colonnes + col].nb_voitures].x = niveau->tableaux_x[k][i];
-					monde->grille_pos_segments[monde->grille[lig*monde->nb_colonnes + col].indice_debut_segments + monde->grille[lig*monde->nb_colonnes + col].nb_voitures].y = niveau->tableaux_y[k][i];
-					monde->grille_segments[monde->grille[lig*monde->nb_colonnes + col].indice_debut_segments + monde->grille[lig*monde->nb_colonnes + col].nb_voitures] = CREA_SEGMENT_2D(niveau->tableaux_x[k][i],niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]],
-											niveau->tableaux_y[k][i],niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]]);
-					monde->grille[lig*monde->nb_colonnes + col].nb_voitures++;
+		if (niveau->sens[k] > 0)
+			for (unsigned int i=0; i<niveau->tailles_tableaux[k]; ++i) {
+				// détermination bouding box du segment
+				float max_x = niveau->tableaux_x[k][i] > niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]] ? niveau->tableaux_x[k][i] : niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]];
+				float max_y = niveau->tableaux_y[k][i] > niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]] ? niveau->tableaux_y[k][i] : niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]];
+				float min_x = niveau->tableaux_x[k][i] < niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]] ? niveau->tableaux_x[k][i] : niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]];
+				float min_y = niveau->tableaux_y[k][i] < niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]] ? niveau->tableaux_y[k][i] : niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]];
+				// ajout du segment pour chaque case de la grille intersectant cette bounding box
+				for (unsigned int col=min_x*monde->nb_colonnes/monde->l; col<max_x*monde->nb_colonnes/monde->l; ++col) {
+					for (unsigned int lig=min_y*monde->nb_lignes/monde->h; lig<max_y*monde->nb_lignes/monde->h; ++lig) {
+						monde->grille_pos_segments[monde->grille[lig*monde->nb_colonnes + col].indice_debut_segments + monde->grille[lig*monde->nb_colonnes + col].nb_voitures].x = niveau->tableaux_x[k][i];
+						monde->grille_pos_segments[monde->grille[lig*monde->nb_colonnes + col].indice_debut_segments + monde->grille[lig*monde->nb_colonnes + col].nb_voitures].y = niveau->tableaux_y[k][i];
+						monde->grille_segments[monde->grille[lig*monde->nb_colonnes + col].indice_debut_segments + monde->grille[lig*monde->nb_colonnes + col].nb_voitures] = CREA_SEGMENT_2D(niveau->tableaux_x[k][i],niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]],
+												niveau->tableaux_y[k][i],niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]]);
+						monde->grille[lig*monde->nb_colonnes + col].nb_voitures++;
+					}
 				}
 			}
-		}
+		else
+			for (unsigned int i=0; i<niveau->tailles_tableaux[k]; ++i) {
+				// détermination bouding box du segment
+				float max_x = niveau->tableaux_x[k][i] > niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]] ? niveau->tableaux_x[k][i] : niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]];
+				float max_y = niveau->tableaux_y[k][i] > niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]] ? niveau->tableaux_y[k][i] : niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]];
+				float min_x = niveau->tableaux_x[k][i] < niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]] ? niveau->tableaux_x[k][i] : niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]];
+				float min_y = niveau->tableaux_y[k][i] < niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]] ? niveau->tableaux_y[k][i] : niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]];
+				// ajout du segment pour chaque case de la grille intersectant cette bounding box
+				for (unsigned int col=min_x*monde->nb_colonnes/monde->l; col<max_x*monde->nb_colonnes/monde->l; ++col) {
+					for (unsigned int lig=min_y*monde->nb_lignes/monde->h; lig<max_y*monde->nb_lignes/monde->h; ++lig) {
+						monde->grille_pos_segments[monde->grille[lig*monde->nb_colonnes + col].indice_debut_segments + monde->grille[lig*monde->nb_colonnes + col].nb_voitures].x = niveau->tableaux_x[k][i];
+						monde->grille_pos_segments[monde->grille[lig*monde->nb_colonnes + col].indice_debut_segments + monde->grille[lig*monde->nb_colonnes + col].nb_voitures].y = niveau->tableaux_y[k][i];
+						monde->grille_segments[monde->grille[lig*monde->nb_colonnes + col].indice_debut_segments + monde->grille[lig*monde->nb_colonnes + col].nb_voitures] = CREA_SEGMENT_2D(niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]],niveau->tableaux_x[k][i],
+												niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]],niveau->tableaux_y[k][i]);
+						monde->grille[lig*monde->nb_colonnes + col].nb_voitures++;
+					}
+				}
+			}
 	}
 	// on réinitialise nb_voitures qui était utilisé comme variable temporaire
 	for (unsigned int i=0; i<=monde->nb_colonnes*monde->nb_lignes; ++i)
@@ -227,21 +246,34 @@ long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* IN
 	// gestion timer
 	monde->timer += dt;
 
+	float speed_coef = INPUT[UP] ? 2.0 : 0.0;
+	VECTEUR2D deplacement_qd, deplacement_zs;
+	if (INPUT[LEFT])
+		monde->voitures[0].angle += 0.05;
+	if (INPUT[RIGHT])
+		monde->voitures[0].angle -= 0.05;
+	monde->voitures[0].angle = monde->voitures[0].angle < 0 ? monde->voitures[0].angle + 2*M_PI : monde->voitures[0].angle;
+	monde->voitures[0].angle = monde->voitures[0].angle >= 2*M_PI ? monde->voitures[0].angle - 2*M_PI : monde->voitures[0].angle;
+	sincosf(monde->voitures[0].angle,&monde->voitures[0].vect_rotation.x,&monde->voitures[0].vect_rotation.y);
+	monde->voitures[0].vect_rotation.x = -monde->voitures[0].vect_rotation.x;
+	monde->voitures[0].deplacement_final.x = speed_coef*monde->voitures[0].vect_rotation.x;
+	monde->voitures[0].deplacement_final.y = speed_coef*monde->voitures[0].vect_rotation.y;
 	// parcours des voitures et calcul du mouvement final en fct du mouvement désiré (juste en dessous) ET DES COLLISIONS
 	for (unsigned short int i=0; i<monde->nb_voitures; ++i) {
 
 		// déterminer le mouvement désiré (en fct des inputs/de l'ia/de dt)
 		// monde->voitures[i].deplacement_final = ...
-		if (i == 0) { // c'est la voiture du joueur
-		} else { // voiture normale
+		if (i > 0)  { // voiture normale
+			monde->voitures[i].deplacement_final.x = monde->voitures[i].deplacement_final.y = 0.;
 		}
-		monde->voitures[i].deplacement_final.x = monde->voitures[i].deplacement_final.y = 0.;
 
+		printf("\n");
 		// parcours des cases de la grille dans lesquelles la voiture se trouve
 		for (unsigned int col=(monde->voitures[i].position.x+monde->voitures[i].min_x)*monde->nb_colonnes/monde->l;
 		col<(monde->voitures[i].position.x+monde->voitures[i].max_x)*monde->nb_colonnes/monde->l; ++col) {
 			for (unsigned int lig=(monde->voitures[i].position.y+monde->voitures[i].min_y)*monde->nb_lignes/monde->h;
 			lig<(monde->voitures[i].position.y+monde->voitures[i].max_y)*monde->nb_lignes/monde->h; ++lig) {
+				printf("lig: %d ; col: %d\n",lig,col);
 				// parcours des voitures dans cette case
 				for (unsigned short int j=0; j<monde->grille[lig*monde->nb_colonnes + col].nb_voitures; ++j) {
 					float pdt_scalaire;
@@ -259,10 +291,12 @@ long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* IN
 				}
 				// parcours des segments dans cette case
 				for (unsigned int j=monde->grille[lig*monde->nb_colonnes + col].indice_debut_segments; j<monde->grille[lig*monde->nb_colonnes + col + 1].indice_debut_segments; ++j) {
+					printf("segment!\n");
 					float pdt_scalaire;
 					VECTEUR2D direction_collision;
 					// si collision
 					if (Test_Collision_Voiture_Segment(monde->voitures+i, monde->grille_segments+j, monde->grille_pos_segments+j, &direction_collision)) {
+						printf("et collision!\n");
 						// modification du mouvement final en conséquence
 						pdt_scalaire = PDT_SCALAIRE_2D_M(monde->voitures[i].deplacement_final,direction_collision);
 						pdt_scalaire = pdt_scalaire < 0 ? 0 : pdt_scalaire;
@@ -310,6 +344,10 @@ long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* IN
 		monde->voitures[i].sprite->position.y = monde->voitures[i].position.y;
 	}
 
+
+	monde->cam.position.x = monde->voitures[0].position.x-DIST_CAM_VOITURE*monde->voitures[0].vect_rotation.x;
+	monde->cam.position.y = monde->voitures[0].position.y-DIST_CAM_VOITURE*monde->voitures[0].vect_rotation.y;
+	monde->cam.longitude = monde->voitures[0].angle;
 	// pour debugguer
 #ifdef FPS_CONTROLS
 	float speed_coef = 5.;
