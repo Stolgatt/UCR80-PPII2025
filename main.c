@@ -231,21 +231,30 @@ int main() {
                             if EST_DANS_CLICKZONE(EVENT.button,clickZoneLeaderboardBack)
                                 choix_page_menu(2,1,&menu_source);
                             break;
-                        case OPTIONS:
+                        case OPTIONS: ;
+                            unsigned short int a_changer = 0;
                             if EST_DANS_CLICKZONE(EVENT.button,clickZoneSoundsM) {
                                 choix_page_menu(3,2,&menu_source); 
+                                a_changer = 1;
                                 SOUNDS_VOLUME = SOUNDS_VOLUME-1 < 0 ? 0 : SOUNDS_VOLUME-1; }
                             else if EST_DANS_CLICKZONE(EVENT.button,clickZoneSoundsP) {
                                 choix_page_menu(3,3,&menu_source);
+                                a_changer = 1;
                                 SOUNDS_VOLUME = SOUNDS_VOLUME+1 > MAX_VOLUME ? MAX_VOLUME : SOUNDS_VOLUME+1; }
                             else if EST_DANS_CLICKZONE(EVENT.button,clickZoneMusicsM) {
                                 choix_page_menu(3,4,&menu_source);
+                                a_changer = 2;
                                 MUSICS_VOLUME = MUSICS_VOLUME-1 < 0 ? 0 : MUSICS_VOLUME-1; }
                             else if EST_DANS_CLICKZONE(EVENT.button,clickZoneMusicsP) {
                                 choix_page_menu(3,5,&menu_source);
+                                a_changer = 2;
                                 MUSICS_VOLUME = MUSICS_VOLUME+1 > MAX_VOLUME ? MAX_VOLUME : MUSICS_VOLUME+1; }
                             else if EST_DANS_CLICKZONE(EVENT.button,clickZoneOptionsBack)
                                 choix_page_menu(3,1,&menu_source);
+                            if (a_changer == 2)
+                                Mix_Volume(0, MIX_MAX_VOLUME*((VOL_INIT_MUS*MUSICS_VOLUME)/MAX_VOLUME));
+                            else if (a_changer)
+                                for (unsigned short int i=1; i<=NB_CHANNELS; ++i) Mix_Volume(i, MIX_MAX_VOLUME*((VOL_INIT_CHAN[i]*SOUNDS_VOLUME)/MAX_VOLUME));
                             break;
                         case PAUSE:
                             if EST_DANS_CLICKZONE(EVENT.button,clickZoneContinue)

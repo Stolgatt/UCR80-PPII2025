@@ -334,5 +334,5 @@ long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* IN
 #endif
 
 	// renvoie 0 si le jeu continue de tourner, renvoie 1 si la partie est terminée
-	return 58000;
+	return 0;
 }
