@@ -170,14 +170,20 @@ typedef struct CONTEXTE_SDL CONTEXTE_SDL;
 
 enum { UP = 0, DOWN, LEFT, RIGHT, Z, Q, S, D, A, E, W, X, O, K, L, M};
 
-#define Dans_Checkpoint(chose,checkpoint) ((chose).x >= (checkpoint).x && (chose).x <= (checkpoint).x + (checkpoint).dx && (chose).y >= (checkpoint).y && (chose).y <= (checkpoint).y + (checkpoint).dy)
+#define Dans_Checkpoint(chose,checkpoint) (INCLUS_DANS_DISQUE((chose).x,(chose).y, (checkpoint).x,(checkpoint).y,(checkpoint).r))
 
 inline short int Test_Collision_Voitures(const VOITURE* v1, const VOITURE* v2, VECTEUR2D* direction) { // play ultrakill
 	for (unsigned int i=0; i<v1->nombre_disques; ++i) {
 		for (unsigned int j=0; j<v2->nombre_disques; ++j) {
-			if INTERSECTION_DISQUES(v1->tableau_centres[i].x,v1->tableau_centres[i].y,v1->tableau_rayons[i], v2->tableau_centres[j].x,v2->tableau_centres[j].y,v2->tableau_rayons[j]) {
-				direction->x = v2->tableau_centres[j].x - v1->tableau_centres[i].x;
-				direction->y = v2->tableau_centres[j].y - v1->tableau_centres[i].y;
+			VECTEUR2D centre1 = v1->tableau_centres[i];
+			centre1.x += v1->position.x;
+			centre1.y += v1->position.y;
+			VECTEUR2D centre2 = v2->tableau_centres[i];
+			centre2.x += v2->position.x;
+			centre2.y += v2->position.y;
+			if INTERSECTION_DISQUES(centre1.x,centre1.y,v1->tableau_rayons[i], centre2.x,centre2.y,v2->tableau_rayons[j]) {
+				direction->x = centre2.x - centre1.x;
+				direction->y = centre2.y - centre1.y;
 				NORMALISER_VECTEUR2D(direction,direction);
 				return 1;
 			}

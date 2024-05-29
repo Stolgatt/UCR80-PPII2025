@@ -267,13 +267,11 @@ long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* IN
 			monde->voitures[i].deplacement_final.x = monde->voitures[i].deplacement_final.y = 0.;
 		}
 
-		printf("\n");
 		// parcours des cases de la grille dans lesquelles la voiture se trouve
 		for (unsigned int col=(monde->voitures[i].position.x+monde->voitures[i].min_x)*monde->nb_colonnes/monde->l;
 		col<(monde->voitures[i].position.x+monde->voitures[i].max_x)*monde->nb_colonnes/monde->l + 1; ++col) {
 			for (unsigned int lig=(monde->voitures[i].position.y+monde->voitures[i].min_y)*monde->nb_lignes/monde->h;
 			lig<(monde->voitures[i].position.y+monde->voitures[i].max_y)*monde->nb_lignes/monde->h + 1; ++lig) {
-				printf("lig: %d ; col: %d\n",lig,col);
 				// parcours des voitures dans cette case
 				for (unsigned short int j=0; j<monde->grille[lig*monde->nb_colonnes + col].nb_voitures; ++j) {
 					float pdt_scalaire;
@@ -291,12 +289,10 @@ long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* IN
 				}
 				// parcours des segments dans cette case
 				for (unsigned int j=monde->grille[lig*monde->nb_colonnes + col].indice_debut_segments; j<monde->grille[lig*monde->nb_colonnes + col + 1].indice_debut_segments; ++j) {
-					printf("segment!\n");
 					float pdt_scalaire;
 					VECTEUR2D direction_collision;
 					// si collision
 					if (Test_Collision_Voiture_Segment(monde->voitures+i, monde->grille_segments+j, monde->grille_pos_segments+j, &direction_collision)) {
-						printf("et collision!\n");
 						// modification du mouvement final en conséquence
 						pdt_scalaire = PDT_SCALAIRE_2D_M(monde->voitures[i].deplacement_final,direction_collision);
 						pdt_scalaire = pdt_scalaire < 0 ? 0 : pdt_scalaire;
