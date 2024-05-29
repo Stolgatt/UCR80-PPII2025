@@ -210,6 +210,7 @@ void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const C
 	// initialisation checkpoint
 	monde->nb_checkpoints = niveau->nb_checkpoints;
 	monde->tableau_checkpoints = niveau->tableau_checkpoints;
+	monde->indice_checkpoint = 0;
 
 	// initialisation skybox
 	monde->scene.skybox_rotation = niveau->skybox_rotation;
@@ -230,7 +231,7 @@ void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const C
 	monde->durees_frame = niveau->durees_frame;
 	monde->tableau_animations = niveau->tableau_animations;
 	monde->tableau_durees_animations = niveau->tableau_durees_animations;
-	monde->tableau_compteurs = malloc(sizeof(long long int)*niveau->nb_decors);
+	monde->tableau_compteurs = calloc(sizeof(long long int),niveau->nb_decors);
 	monde->tableau_frames = calloc(niveau->nb_decors,sizeof(unsigned short int));
 
 }
@@ -275,10 +276,16 @@ float indice_vitesse = 0;
 
 long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* INPUT, const unsigned long long dt) {
 
-	// gestion checkpoints
-
 	// gestion timer
 	monde->timer += dt;
+
+	// gestion checkpoints
+	if Dans_Checkpoint(monde->voitures[0].position, monde->tableau_checkpoints[monde->indice_checkpoint]) {
+		printf("%d done\n",monde->indice_checkpoint);
+		monde->indice_checkpoint++;
+		if (monde->indice_checkpoint == monde->nb_checkpoints)
+			return monde->timer;
+	}
 
 	// gestion animations
 	for (unsigned int i=0; i<monde->scene.tout_en_haut->sprites_au_dessus->N - monde->nb_voitures; ++i) {

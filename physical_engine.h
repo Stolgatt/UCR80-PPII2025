@@ -98,6 +98,7 @@ struct MONDE_PHYSIQUE {
 	// partie checkpoints
 	unsigned int nb_checkpoints;
 	const CHECKPOINT* tableau_checkpoints;
+	unsigned short int indice_checkpoint;
 
 };
 typedef struct MONDE_PHYSIQUE MONDE_PHYSIQUE;

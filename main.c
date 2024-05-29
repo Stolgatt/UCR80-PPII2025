@@ -1,6 +1,18 @@
 #include "main.h"
 
 int main() {
+    // pitit hard fix dégueulasse
+    for (unsigned int i=0; i<lvl_ferme.nb_checkpoints; ++i) {
+        lvl_ferme.tableau_checkpoints[i].x += 2000.;
+        lvl_ferme.tableau_checkpoints[i].y += 2000.;
+        lvl_ferme.tableau_checkpoints[i].r = 400; 
+    }
+    lvl_ferme.tableau_checkpoints[lvl_ferme.nb_checkpoints-1].r = 100;
+    for (unsigned int i=0; i<lvl_neon_city.nb_checkpoints; ++i) {
+        lvl_neon_city.tableau_checkpoints[i].x += 2500.;
+        lvl_neon_city.tableau_checkpoints[i].y += 2500.;
+    }
+
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO) != 0) {
         printf("SDL_Init Error: %s\n", SDL_GetError());
         return 1;
