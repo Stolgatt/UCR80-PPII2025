@@ -297,7 +297,7 @@ long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* IN
 			monde->voitures[0].vitesse = calcul_vitesse(indice_vitesse);
 		}
 	}
-	if (!INPUT[UP]  && !INPUT[Z]) {
+	if (!INPUT[UP] && !INPUT[Z]) {
 		if (monde->voitures[0].vitesse >0) {
 			indice_vitesse -= 0.01;
 			monde->voitures[0].vitesse = calcul_vitesse(indice_vitesse);
@@ -315,10 +315,17 @@ long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* IN
 			monde->voitures[0].vitesse = calcul_vitesse_arriere(indice_vitesse);
 		}
 	}
-	if (INPUT[LEFT] || INPUT[Q])
+	if (INPUT[LEFT] || INPUT[Q]){
 		monde->voitures[0].angle += 0.025+0.025*(1.-monde->voitures[0].vitesse/7.);
-	if (INPUT[RIGHT] || INPUT[D])
+		choix_sprite(3,1,0,monde->voitures[0].sprite->texture,&monde->voitures[0].sprite->source);
+	}
+	if (INPUT[RIGHT] || INPUT[D]){
 		monde->voitures[0].angle -= 0.025+0.025*(1.-monde->voitures[0].vitesse/7.);
+		choix_sprite(3,1,2,monde->voitures[0].sprite->texture,&monde->voitures[0].sprite->source);
+	}
+	if (!INPUT[RIGHT] && !INPUT[D] && !INPUT[LEFT] && !INPUT[Q]){
+		choix_sprite(3,1,1,monde->voitures[0].sprite->texture,&monde->voitures[0].sprite->source);
+	}
 	
 	monde->voitures[0].angle = monde->voitures[0].angle < 0 ? monde->voitures[0].angle + 2*M_PI : monde->voitures[0].angle;
 	monde->voitures[0].angle = monde->voitures[0].angle >= 2*M_PI ? monde->voitures[0].angle - 2*M_PI : monde->voitures[0].angle;
