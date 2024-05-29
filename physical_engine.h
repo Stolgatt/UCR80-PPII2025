@@ -40,7 +40,7 @@ typedef struct VOITURE VOITURE;
 typedef struct _CHECKPOINT{
     float x;
     float y;
-    float r
+    float r;
 } CHECKPOINT;
 
 struct CASE_GRILLE {
@@ -148,6 +148,10 @@ struct NIVEAU {
 
 	// minimap
 	unsigned short int minimap;
+
+	// skybox
+	unsigned short int texture_id_skybox;
+	float skybox_rotation;
 
 };
 typedef struct NIVEAU NIVEAU;

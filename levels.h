@@ -6,7 +6,8 @@
 // l'ensemble des textures à charger pour le jeu (n'incluant pas les menus)
 const char * const TEXTURE_FILES[] = {"assets/maps/mapferme.bmp","assets/maps/mapneon.bmp",
 									"assets/sprites/delorean.bmp",
-									"assets/maps/minimapferme.bmp","assets/maps/minimapneon.bmp"};
+									"assets/maps/minimapferme.bmp","assets/maps/minimapneon.bmp",
+									"assets/skyboxes/skybox_moomoo.bmp","assets/skyboxes/skybox_neon.bmp"};
 
 // l'ensemble des sons à charger pour le jeu (musique inclus)
 const char * const SON_FILES[] = {"assets/sounds/musique.wav","assets/sounds/moteur.wav"};
@@ -71,7 +72,10 @@ NIVEAU lvl_ferme = {
 	.l = 4000.,
 	.h = 4000.,
 
-	.minimap = 3
+	.minimap = 3,
+
+	.texture_id_skybox = 5,
+	.skybox_rotation = 0.
 };
 
 // NEON_CITY
@@ -128,7 +132,10 @@ NIVEAU lvl_neon_city = {
 	.l = 5000.,
 	.h = 5000.,
 
-	.minimap = 4
+	.minimap = 4,
+
+	.texture_id_skybox = 6,
+	.skybox_rotation = 0.
 };
 
 #endif

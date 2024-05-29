@@ -211,6 +211,18 @@ void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const C
 	monde->nb_checkpoints = niveau->nb_checkpoints;
 	monde->tableau_checkpoints = niveau->tableau_checkpoints;
 
+	// initialisation skybox
+	monde->scene.skybox_rotation = niveau->skybox_rotation;
+	SDL_Rect tmp = {0};
+	SDL_QueryTexture(contexte->tableau_textures[niveau->texture_id_skybox],NULL,NULL,&tmp.w,&tmp.h);
+	monde->scene.skybox = SDL_CreateTexture(monde->cam.renderer,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_TARGET,2*tmp.w,tmp.h);
+	SDL_SetTextureBlendMode(monde->scene.skybox,SDL_BLENDMODE_BLEND);
+	SDL_SetRenderTarget(monde->cam.renderer,monde->scene.skybox);
+	SDL_RenderClear(monde->cam.renderer);
+	SDL_RenderCopy(monde->cam.renderer,contexte->tableau_textures[niveau->texture_id_skybox],NULL,&tmp);
+	tmp.x += tmp.w;
+	SDL_RenderCopy(monde->cam.renderer,contexte->tableau_textures[niveau->texture_id_skybox],NULL,&tmp);
+	SDL_SetRenderTarget(monde->cam.renderer,NULL); // l'un des bugs les plus vicieux qu'il m'ait été donné de voir
 }
 
 void Decharger_Monde_Physique(MONDE_PHYSIQUE* monde) {
@@ -236,6 +248,7 @@ void Decharger_Monde_Physique(MONDE_PHYSIQUE* monde) {
 		free(ptr2);
 		ptr2 = tmp2;
 	}
+	SDL_DestroyTexture(monde->scene.skybox);
 
 }
 
@@ -247,7 +260,6 @@ long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* IN
 	monde->timer += dt;
 
 	float speed_coef = INPUT[UP] ? 2.0 : 0.0;
-	VECTEUR2D deplacement_qd, deplacement_zs;
 	if (INPUT[LEFT])
 		monde->voitures[0].angle += 0.05;
 	if (INPUT[RIGHT])
@@ -365,6 +377,8 @@ long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* IN
     if (INPUT[Q]) {monde->cam.position.x -= deplacement_qd.x; monde->cam.position.y -= deplacement_qd.y;}
     if (INPUT[E]) monde->cam.position.z += speed_coef;
     if (INPUT[A]) monde->cam.position.z -= speed_coef;
+    if (INPUT[W]) monde->cam.roulis += 0.02;
+    if (INPUT[X]) monde->cam.roulis -= 0.02;
 #endif
 
 	// renvoie 0 si le jeu continue de tourner, renvoie 1 si la partie est terminée

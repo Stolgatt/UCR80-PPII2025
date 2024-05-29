@@ -208,7 +208,23 @@ void AFFICHAGE_CAMERA(const CAMERA* cam, const SCENE* scene) {
 	SDL_SetRenderTarget(cam->renderer, cam->tmp_cible);
 	SDL_RenderClear(cam->renderer);
 
-	// AFFICHAGE_SKYBOX();
+	// affichage skybox
+	SDL_Rect skybox_rect_source, skybox_rect_dest;
+	SDL_QueryTexture(scene->skybox,NULL,NULL,&skybox_rect_source.w,&skybox_rect_source.h);
+	skybox_rect_source.w /= 2;
+	skybox_rect_source.x = skybox_rect_source.w;
+	float left_angle = scene->skybox_rotation - cam->longitude + atanf(min_l/cam->distance_ecran);
+	float right_angle = scene->skybox_rotation - cam->longitude + atanf(max_l/cam->distance_ecran);
+	skybox_rect_source.w *= (right_angle - left_angle)/(2.*M_PI);
+	while (left_angle < 0) left_angle += 2.*M_PI;
+	while (left_angle >= 2.*M_PI) left_angle -= 2.*M_PI;
+	skybox_rect_source.x *= left_angle/(2.*M_PI);
+	skybox_rect_source.y = 0;
+	skybox_rect_dest.w = src_rect.w;
+	skybox_rect_dest.x = 0;
+	skybox_rect_dest.h = skybox_rect_source.h;
+	skybox_rect_dest.y = max_h/cam->echelle_ecran - 3*cam->dimension_cible.h/5; // complètement inccorect mais suffisant si -1 <<< latitude <<< 1
+	SDL_RenderCopy(cam->renderer,scene->skybox,&skybox_rect_source,&skybox_rect_dest);
 
 	PLAN_HORIZONTAL* ptr = scene->tout_en_haut;
 	if (haut_ecran_z > 0) {
@@ -369,7 +385,6 @@ void AFFICHAGE_CAMERA(const CAMERA* cam, const SCENE* scene) {
 	SDL_SetRenderTarget(cam->renderer,cam->tmp_text);
 	SDL_RenderClear(cam->renderer);
 	SDL_RenderCopyEx(cam->renderer, cam->tmp_cible, &src_rect, &dst_rect, RAD2DEG(cam->roulis), &pt, SDL_FLIP_NONE);
-
 	SDL_SetRenderTarget(cam->renderer,cam->cible);
 	SDL_RenderCopy(cam->renderer,cam->tmp_text,&cam->dimension_cible,&cam->dimension_cible);
 

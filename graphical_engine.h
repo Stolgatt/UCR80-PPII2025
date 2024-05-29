@@ -65,6 +65,8 @@ struct SCENE {
 	TABLEAU_SPRITES* sprites_tout_en_bas;
 	PLAN_HORIZONTAL* tout_en_bas;
 	PLAN_HORIZONTAL* tout_en_haut;
+	SDL_Texture* skybox;
+	float skybox_rotation;
 
 };
 typedef struct SCENE SCENE;
