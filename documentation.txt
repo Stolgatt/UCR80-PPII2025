@@ -32,3 +32,8 @@ une grille qui contient l'ensemble des segments de la piste de course
 la liste doublement chaînée pour stocker les sols
 un tableau de liste de chaînée d'objets dynamiques (voitures + plage d'indice pour les objets statiques correspondants => 2ème tableau)
 
+Pour la gestion des collisions avec les limites de la carte, on utilise le logiciel gratuit TILED qui nous permet de créer un polygone par dessus la carte en png.
+On peut ensuite l'exporter au format .JSON, on utilise ensuite un petit script python afin d'en récupérer une liste des abscisses et une des ordonnées.
+A partir de ces 2 listes on en déduit le vecteur unitaire associé à chaque couple de coordonnées de point puis le segment définie par ce vecteur unitaire et la distance entre les 2 points.
+On place tout ces segments dans une liste et on ajoute l'origine de chaque segment dans une autre liste.
+On peut donc utiliser la fonction INTERSECTION_SEGMENT_2D à partir de ces listes  et avec un cercle représentant la hitbox pour détecter les collisions avec le décor.
