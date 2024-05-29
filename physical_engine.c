@@ -282,31 +282,34 @@ long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* IN
 		}
 	}
 
-	if (INPUT[UP]){
+	if (INPUT[UP] || INPUT[Z]){
 		if (monde->voitures[0].vitesse <10) {
-			monde->voitures[0].vitesse += 0.02;
+			monde->voitures[0].vitesse += 0.04;
 		}
 	}
-	if (!INPUT[UP]) {
+	if (!INPUT[UP] || !INPUT[Z]) {
 		if (monde->voitures[0].vitesse >0) {
 			monde->voitures[0].vitesse -= 0.01;
 		}
 	}
-	if (INPUT[DOWN]){
-		if (monde->voitures[0].vitesse >-5) {
+	if (INPUT[DOWN] || INPUT[S]){
+		if (monde->voitures[0].vitesse >0){
+			monde->voitures[0].vitesse -= 0.1;
+		}
+		else if (monde->voitures[0].vitesse >-5) {
 			monde->voitures[0].vitesse -= 0.02;
 		}
 	}
-	if (!INPUT[DOWN]) {
+	if (!INPUT[DOWN] || !INPUT[S]) {
 		if (monde->voitures[0].vitesse <0) {
 			monde->voitures[0].vitesse += 0.01;
 		}
 	}
-	if (INPUT[LEFT])
+	if (INPUT[LEFT] || INPUT[Q])
 		monde->voitures[0].angle += 0.05;
-	if (INPUT[RIGHT])
+	if (INPUT[RIGHT] || INPUT[D])
 		monde->voitures[0].angle -= 0.05;
-	
+
 	monde->voitures[0].angle = monde->voitures[0].angle < 0 ? monde->voitures[0].angle + 2*M_PI : monde->voitures[0].angle;
 	monde->voitures[0].angle = monde->voitures[0].angle >= 2*M_PI ? monde->voitures[0].angle - 2*M_PI : monde->voitures[0].angle;
 	sincosf(monde->voitures[0].angle,&monde->voitures[0].vect_rotation.x,&monde->voitures[0].vect_rotation.y);
