@@ -282,17 +282,37 @@ long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* IN
 		}
 	}
 
-	float speed_coef = INPUT[UP] ? 2.0 : 0.0;
+	if (INPUT[UP]){
+		if (monde->voitures[0].vitesse <10) {
+			monde->voitures[0].vitesse += 0.02;
+		}
+	}
+	if (!INPUT[UP]) {
+		if (monde->voitures[0].vitesse >0) {
+			monde->voitures[0].vitesse -= 0.01;
+		}
+	}
+	if (INPUT[DOWN]){
+		if (monde->voitures[0].vitesse >-5) {
+			monde->voitures[0].vitesse -= 0.02;
+		}
+	}
+	if (!INPUT[DOWN]) {
+		if (monde->voitures[0].vitesse <0) {
+			monde->voitures[0].vitesse += 0.01;
+		}
+	}
 	if (INPUT[LEFT])
 		monde->voitures[0].angle += 0.05;
 	if (INPUT[RIGHT])
 		monde->voitures[0].angle -= 0.05;
+	
 	monde->voitures[0].angle = monde->voitures[0].angle < 0 ? monde->voitures[0].angle + 2*M_PI : monde->voitures[0].angle;
 	monde->voitures[0].angle = monde->voitures[0].angle >= 2*M_PI ? monde->voitures[0].angle - 2*M_PI : monde->voitures[0].angle;
 	sincosf(monde->voitures[0].angle,&monde->voitures[0].vect_rotation.x,&monde->voitures[0].vect_rotation.y);
 	monde->voitures[0].vect_rotation.x = -monde->voitures[0].vect_rotation.x;
-	monde->voitures[0].deplacement_final.x = speed_coef*monde->voitures[0].vect_rotation.x;
-	monde->voitures[0].deplacement_final.y = speed_coef*monde->voitures[0].vect_rotation.y;
+	monde->voitures[0].deplacement_final.x = monde->voitures[0].vitesse*monde->voitures[0].vect_rotation.x;
+	monde->voitures[0].deplacement_final.y = monde->voitures[0].vitesse*monde->voitures[0].vect_rotation.y;
 	// parcours des voitures et calcul du mouvement final en fct du mouvement désiré (juste en dessous) ET DES COLLISIONS
 	for (unsigned short int i=0; i<monde->nb_voitures; ++i) {
 
