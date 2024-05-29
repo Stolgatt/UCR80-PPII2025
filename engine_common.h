@@ -6,9 +6,11 @@
 #include <math.h>
 
 // jsp pk mais gcc trouve pas la déclaration de sincosf dans <math.h> donc pour éviter les warnings chiants je fais ça
+#ifndef MACOS
 void sincosf(float, float*, float*);
+#endif
 // et au pire... :(
-#ifdef SINCOSF_SYMBOL_NOT_FOUND_pk_ça_fait_ça_je_comprends_pas_en_tout_cas_voici_un_fix_dégueulasse_mais_fonctionnel
+#ifdef MACOS
 void inline sincosf(float angle,float* sin,float* cos) {
 	*sin = sinf(angle);
 	*cos = cosf(angle);

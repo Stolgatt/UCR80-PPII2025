@@ -16,6 +16,10 @@ main.out: main.c main.h $(SRCS) $(HEADERS)
 	$(CC) $(FLAGS) $(SRCS) main.c -o main.out
 	chmod u+x main.out
 
+main_mac: main.c main.h $(SRCS) $(HEADERS)
+	$(CC) $(FLAGS) $(SRCS) main.c -o main.out -D MACOS
+	chmod u+x main.out
+
 main_test.out: main_test.c $(SRCS) $(HEADERS)
 	$(CC) $(FLAGS) $(SRCS) main_test.c -o main_test.out
 	chmod u+x main_test.out

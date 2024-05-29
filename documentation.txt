@@ -1,3 +1,5 @@
+/!\ POUR JOUER SOUS MACOS MERCI D'EXECUTER <make main_mac> AU LIEU DE <make> /!\
+
 Dans Ultimate Car racing 80 retour vers le passé,
 
 Vous contrôlez une voiture rétro et tentez de faire le plus rapidement possible le tour du circuit.
