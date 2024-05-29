@@ -264,6 +264,15 @@ void Decharger_Monde_Physique(MONDE_PHYSIQUE* monde) {
 
 }
 
+//fonction calcul de vitesse
+float calcul_vitesse(float x) {
+	return ((1-exp(-x))*10);
+}
+float calcul_vitesse_arriere(float x) {
+	return ((1-exp(-x))*5);
+}
+float indice_vitesse = 0;
+
 long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* INPUT, const unsigned long long dt) {
 
 	// gestion checkpoints
@@ -282,30 +291,34 @@ long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* IN
 		}
 	}
 
-	if (INPUT[UP]){
-		if (monde->voitures[0].vitesse <10) {
-			monde->voitures[0].vitesse += 0.02;
+	if (INPUT[UP] || INPUT[Z]){
+		if (monde->voitures[0].vitesse <7) {
+			indice_vitesse+=0.01;
+			monde->voitures[0].vitesse = calcul_vitesse(indice_vitesse);
 		}
 	}
-	if (!INPUT[UP]) {
+	if (!INPUT[UP]  && !INPUT[Z]) {
 		if (monde->voitures[0].vitesse >0) {
-			monde->voitures[0].vitesse -= 0.01;
+			indice_vitesse -= 0.01;
+			monde->voitures[0].vitesse = calcul_vitesse(indice_vitesse);
 		}
 	}
-	if (INPUT[DOWN]){
-		if (monde->voitures[0].vitesse >-5) {
-			monde->voitures[0].vitesse -= 0.02;
+	if (INPUT[DOWN] || INPUT[S]){
+		if (monde->voitures[0].vitesse >-2) {
+			indice_vitesse-=0.04;
+			monde->voitures[0].vitesse = calcul_vitesse_arriere(indice_vitesse);
 		}
 	}
-	if (!INPUT[DOWN]) {
+	if (!INPUT[DOWN] && !INPUT[S]) {
 		if (monde->voitures[0].vitesse <0) {
-			monde->voitures[0].vitesse += 0.01;
+			indice_vitesse += 0.02;
+			monde->voitures[0].vitesse = calcul_vitesse_arriere(indice_vitesse);
 		}
 	}
-	if (INPUT[LEFT])
-		monde->voitures[0].angle += 0.05;
-	if (INPUT[RIGHT])
-		monde->voitures[0].angle -= 0.05;
+	if (INPUT[LEFT] || INPUT[Q])
+		monde->voitures[0].angle += 0.025+0.025*(1.-monde->voitures[0].vitesse/7.);
+	if (INPUT[RIGHT] || INPUT[D])
+		monde->voitures[0].angle -= 0.025+0.025*(1.-monde->voitures[0].vitesse/7.);
 	
 	monde->voitures[0].angle = monde->voitures[0].angle < 0 ? monde->voitures[0].angle + 2*M_PI : monde->voitures[0].angle;
 	monde->voitures[0].angle = monde->voitures[0].angle >= 2*M_PI ? monde->voitures[0].angle - 2*M_PI : monde->voitures[0].angle;
@@ -321,7 +334,7 @@ long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* IN
 		if (i > 0)  { // voiture normale
 			monde->voitures[i].deplacement_final.x = monde->voitures[i].deplacement_final.y = 0.;
 		}
-
+		int collision_vitesse=0;
 		// parcours des cases de la grille dans lesquelles la voiture se trouve
 		for (unsigned int col=(monde->voitures[i].position.x+monde->voitures[i].min_x)*monde->nb_colonnes/monde->l;
 		col<(monde->voitures[i].position.x+monde->voitures[i].max_x)*monde->nb_colonnes/monde->l + 1; ++col) {
@@ -336,6 +349,7 @@ long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* IN
 					// si collision
 					if (k != i && Test_Collision_Voitures(monde->voitures+i,monde->voitures+k,&direction_collision)) {
 						// modification du mouvement final en conséquence
+						collision_vitesse=1;
 						pdt_scalaire = PDT_SCALAIRE_2D_M(monde->voitures[i].deplacement_final,direction_collision);
 						pdt_scalaire = pdt_scalaire < 0 ? 0 : pdt_scalaire;
 						monde->voitures[i].deplacement_final.x -= pdt_scalaire*direction_collision.x;
@@ -348,14 +362,26 @@ long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* IN
 					VECTEUR2D direction_collision;
 					// si collision
 					if (Test_Collision_Voiture_Segment(monde->voitures+i, monde->grille_segments+j, monde->grille_pos_segments+j, &direction_collision)) {
+
 						// modification du mouvement final en conséquence
+						collision_vitesse=1;
 						pdt_scalaire = PDT_SCALAIRE_2D_M(monde->voitures[i].deplacement_final,direction_collision);
 						pdt_scalaire = pdt_scalaire < 0 ? 0 : pdt_scalaire;
 						monde->voitures[i].deplacement_final.x -= pdt_scalaire*direction_collision.x;
 						monde->voitures[i].deplacement_final.y -= pdt_scalaire*direction_collision.y;
+						
 					}
 				}
 			}
+		}
+		if (i==0 && collision_vitesse==1) {
+			if (monde->voitures[0].vitesse >0) {
+				indice_vitesse -= 0.02;
+			}
+			else if (monde->voitures[0].vitesse <0) {
+				indice_vitesse += 0.01;
+			}
+			monde->voitures[0].vitesse = calcul_vitesse(indice_vitesse);
 		}
 	}
 
