@@ -76,7 +76,6 @@ void TRI_RAPIDE(Z_SPRITE* tableau, unsigned int debut, unsigned int fin) {
 void AFFICHAGE_SPRITES(const TABLEAU_SPRITES* sprites, const CAMERA* cam, const PRECALCULS* precalc) {
 
 	unsigned int n = 0;
-
 	// projection de tous les sprites
 	while (sprites != NULL && n < cam->N_MAX) {
 		unsigned int i_final = cam->N_MAX - n >= sprites->N ? sprites->N : cam->N_MAX - n;

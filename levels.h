@@ -7,7 +7,8 @@
 const char * const TEXTURE_FILES[] = {"assets/maps/mapferme.bmp","assets/maps/mapneon.bmp",
 									"assets/sprites/delorean.bmp",
 									"assets/maps/minimapferme.bmp","assets/maps/minimapneon.bmp",
-									"assets/skyboxes/skybox_moomoo.bmp","assets/skyboxes/skybox_neon.bmp"};
+									"assets/skyboxes/skybox_moomoo.bmp","assets/skyboxes/skybox_neon.bmp",
+									"assets/sprites/panneaux.bmp","assets/sprites/zoneinterdite.bmp"};
 
 // l'ensemble des sons à charger pour le jeu (musique inclus)
 const char * const SON_FILES[] = {"assets/sounds/musique.wav","assets/sounds/moteur.wav"};
@@ -90,7 +91,19 @@ static VECTEUR2D pos_ini_sol_neon[] = {{2500.,2500.}};
 static float angles_ini_sol_neon[] = {0.};
 static float echelles_ini_sol_neon[] = {1.};
 static unsigned short int textures_sol_neon[] = {1};
-// décors (y en a pas, pour l'instant)
+// décors
+static const unsigned int nb_decors = 14;
+static float echelles_dec[] = {30.,30.,25,25,25,25,25,25,25,25,25,25,25,25};
+static VECTEUR3D positions_dec[] = {{2184,668,20},{3270,828,20}, {1682, 2449, 20}, {1882,2449, 20}, {1682, 2352, 20}, {1792,3447,20},{2452,2542,20},{2352,2442,20},{3232,2342,20},{2452,3442,20},{2452,3248,20},{3232,3452,20},{3342,3352,20},{3342,3442,20}};
+static unsigned short int texture_ids_dec[] = {7,7,8,8,8,8,8,8,8,8,8,8,8,8};
+static unsigned short int nbs_colonnes[] = {6,6,1,1,1,1,1,1,1,1,1,1,1,1};
+static unsigned short int nbs_lignes[] = {2,2,1,1,1,1,1,1,1,1,1,1,1,1};
+static long long int durees_frame[] = {300,300,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000};
+static unsigned short int tableau_durees_animations[] = {6,6,1,1,1,1,1,1,1,1,1,1,1,1};
+static unsigned short int t1[] = {0,1,2,3,4,5};
+static unsigned short int t2[] = {6,7,8,9,10,11};
+static unsigned short int t3[] = {0};
+static unsigned short int* tableau_animations[] = {t2,t2,t3,t3,t3,t3,t3,t3,t3,t3,t3,t3,t3,t3};
 // segments
 static float tx1_neon[] = {2206, 2190, 1563, 1327, 1194, 970, 874, 823, 742, 702, 647, 643, 576, 575, 617, 696, 824, 856, 922, 1035, 1180, 1298, 1415, 1583, 1674, 1955, 2154, 2438, 2804, 3159, 3772, 4071, 4164, 4229, 4345, 4393, 4430, 4428, 4380, 4377, 4494, 4515, 4496, 4417, 4307, 3839, 3400, 3074, 2748, 3075, 3374, 3171, 2981, 2462, 2371, 2369, 2371, 2546, 2546, 3144, 3144, 2548, 2548, 2373, 2370, 1870, 1873, 1908, 1910, 1868, 1868, 1870, 1967, 2102, 2163, 2228, 2240, 2257, 2258, 2245, 2210};
 static float ty1_neon[] = {829, 505, 502, 526, 552, 633, 690, 734, 831, 912, 1366, 1529, 2135, 2493, 2992, 3402, 3824, 3940, 4059, 4161, 4262, 4307, 4338, 4362, 4390, 4424, 4443, 4448, 4434, 4406, 4321, 4233, 4176, 4086, 3858, 3716, 3462, 3118, 2900, 2636, 1979, 1714, 1453, 1300, 1142, 823, 658, 552, 505, 552, 650, 982, 1093, 1606, 1773, 1856, 2566, 2566, 2534, 2532, 3257, 3257, 3232, 3232, 3258, 3260, 2535, 2530, 2360, 2360, 1839, 1821, 1642, 1426, 1322, 1183, 1154, 1069, 996, 913, 853};
@@ -116,7 +129,15 @@ NIVEAU lvl_neon_city = {
 	.echelles_sols = echelles_ini_sol_neon,
 	.texture_ids_sols = textures_sol_neon,
 
-	.nb_decors = 0,
+	.nb_decors = nb_decors,
+	.echelles_dec = echelles_dec,
+	.positions_dec = positions_dec,
+	.texture_ids_dec = texture_ids_dec,
+	.nbs_colonnes = nbs_colonnes,
+	.nbs_lignes = nbs_lignes,
+	.durees_frame = durees_frame,
+	.tableau_durees_animations = tableau_durees_animations,
+	.tableau_animations = tableau_animations,
 
 	.nb_tableaux = sizeof(t_tab_neon)/sizeof(unsigned int),
 	.tailles_tableaux = t_tab_neon,
