@@ -38,8 +38,8 @@ void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const C
 			float min_x = niveau->tableaux_x[k][i] < niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]] ? niveau->tableaux_x[k][i] : niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]];
 			float min_y = niveau->tableaux_y[k][i] < niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]] ? niveau->tableaux_y[k][i] : niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]];
 			// ajout d'une unité (comptage) dans les cases de la grille intersectant cette bounding box
-			for (unsigned int col=min_x*monde->nb_colonnes/monde->l; col<max_x*monde->nb_colonnes/monde->l; ++col) {
-				for (unsigned int lig=min_y*monde->nb_lignes/monde->h; lig<max_y*monde->nb_lignes/monde->h; ++lig) {
+			for (unsigned int col=min_x*monde->nb_colonnes/monde->l; col<max_x*monde->nb_colonnes/monde->l + 1; ++col) {
+				for (unsigned int lig=min_y*monde->nb_lignes/monde->h; lig<max_y*monde->nb_lignes/monde->h + 1; ++lig) {
 					monde->grille[lig*monde->nb_colonnes + col].indice_debut_segments++;
 					nb_total_segments++;
 				}
@@ -67,8 +67,8 @@ void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const C
 				float min_x = niveau->tableaux_x[k][i] < niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]] ? niveau->tableaux_x[k][i] : niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]];
 				float min_y = niveau->tableaux_y[k][i] < niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]] ? niveau->tableaux_y[k][i] : niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]];
 				// ajout du segment pour chaque case de la grille intersectant cette bounding box
-				for (unsigned int col=min_x*monde->nb_colonnes/monde->l; col<max_x*monde->nb_colonnes/monde->l; ++col) {
-					for (unsigned int lig=min_y*monde->nb_lignes/monde->h; lig<max_y*monde->nb_lignes/monde->h; ++lig) {
+				for (unsigned int col=min_x*monde->nb_colonnes/monde->l; col<max_x*monde->nb_colonnes/monde->l+1; ++col) {
+					for (unsigned int lig=min_y*monde->nb_lignes/monde->h; lig<max_y*monde->nb_lignes/monde->h+1; ++lig) {
 						monde->grille_pos_segments[monde->grille[lig*monde->nb_colonnes + col].indice_debut_segments + monde->grille[lig*monde->nb_colonnes + col].nb_voitures].x = niveau->tableaux_x[k][i];
 						monde->grille_pos_segments[monde->grille[lig*monde->nb_colonnes + col].indice_debut_segments + monde->grille[lig*monde->nb_colonnes + col].nb_voitures].y = niveau->tableaux_y[k][i];
 						monde->grille_segments[monde->grille[lig*monde->nb_colonnes + col].indice_debut_segments + monde->grille[lig*monde->nb_colonnes + col].nb_voitures] = CREA_SEGMENT_2D(niveau->tableaux_x[k][i],niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]],
@@ -85,10 +85,10 @@ void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const C
 				float min_x = niveau->tableaux_x[k][i] < niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]] ? niveau->tableaux_x[k][i] : niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]];
 				float min_y = niveau->tableaux_y[k][i] < niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]] ? niveau->tableaux_y[k][i] : niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]];
 				// ajout du segment pour chaque case de la grille intersectant cette bounding box
-				for (unsigned int col=min_x*monde->nb_colonnes/monde->l; col<max_x*monde->nb_colonnes/monde->l; ++col) {
-					for (unsigned int lig=min_y*monde->nb_lignes/monde->h; lig<max_y*monde->nb_lignes/monde->h; ++lig) {
-						monde->grille_pos_segments[monde->grille[lig*monde->nb_colonnes + col].indice_debut_segments + monde->grille[lig*monde->nb_colonnes + col].nb_voitures].x = niveau->tableaux_x[k][i];
-						monde->grille_pos_segments[monde->grille[lig*monde->nb_colonnes + col].indice_debut_segments + monde->grille[lig*monde->nb_colonnes + col].nb_voitures].y = niveau->tableaux_y[k][i];
+				for (unsigned int col=min_x*monde->nb_colonnes/monde->l; col<max_x*monde->nb_colonnes/monde->l+1; ++col) {
+					for (unsigned int lig=min_y*monde->nb_lignes/monde->h; lig<max_y*monde->nb_lignes/monde->h+1; ++lig) {
+						monde->grille_pos_segments[monde->grille[lig*monde->nb_colonnes + col].indice_debut_segments + monde->grille[lig*monde->nb_colonnes + col].nb_voitures].x = niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]];
+						monde->grille_pos_segments[monde->grille[lig*monde->nb_colonnes + col].indice_debut_segments + monde->grille[lig*monde->nb_colonnes + col].nb_voitures].y = niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]];
 						monde->grille_segments[monde->grille[lig*monde->nb_colonnes + col].indice_debut_segments + monde->grille[lig*monde->nb_colonnes + col].nb_voitures] = CREA_SEGMENT_2D(niveau->tableaux_x[k][(i+1)%niveau->tailles_tableaux[k]],niveau->tableaux_x[k][i],
 												niveau->tableaux_y[k][(i+1)%niveau->tailles_tableaux[k]],niveau->tableaux_y[k][i]);
 						monde->grille[lig*monde->nb_colonnes + col].nb_voitures++;
@@ -164,9 +164,9 @@ void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const C
 
 		// on place la voitures dans les cases de la grille
 		for (unsigned int col=(monde->voitures[i].position.x+monde->voitures[i].min_x)*monde->nb_colonnes/monde->l;
-		col<(monde->voitures[i].position.x+monde->voitures[i].max_x)*monde->nb_colonnes/monde->l; ++col) {
+		col<(monde->voitures[i].position.x+monde->voitures[i].max_x)*monde->nb_colonnes/monde->l + 1; ++col) {
 			for (unsigned int lig=(monde->voitures[i].position.y+monde->voitures[i].min_y)*monde->nb_lignes/monde->h;
-			lig<(monde->voitures[i].position.y+monde->voitures[i].max_y)*monde->nb_lignes/monde->h; ++lig) {
+			lig<(monde->voitures[i].position.y+monde->voitures[i].max_y)*monde->nb_lignes/monde->h + 1; ++lig) {
 				// ajout de la voiture dans cette case
 				monde->grille_voitures[(lig*monde->nb_colonnes + col)*monde->nb_voitures + monde->grille[lig*monde->nb_colonnes + col].nb_voitures] = i;
 				monde->grille[lig*monde->nb_colonnes + col].nb_voitures++;
@@ -270,9 +270,9 @@ long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* IN
 		printf("\n");
 		// parcours des cases de la grille dans lesquelles la voiture se trouve
 		for (unsigned int col=(monde->voitures[i].position.x+monde->voitures[i].min_x)*monde->nb_colonnes/monde->l;
-		col<(monde->voitures[i].position.x+monde->voitures[i].max_x)*monde->nb_colonnes/monde->l; ++col) {
+		col<(monde->voitures[i].position.x+monde->voitures[i].max_x)*monde->nb_colonnes/monde->l + 1; ++col) {
 			for (unsigned int lig=(monde->voitures[i].position.y+monde->voitures[i].min_y)*monde->nb_lignes/monde->h;
-			lig<(monde->voitures[i].position.y+monde->voitures[i].max_y)*monde->nb_lignes/monde->h; ++lig) {
+			lig<(monde->voitures[i].position.y+monde->voitures[i].max_y)*monde->nb_lignes/monde->h + 1; ++lig) {
 				printf("lig: %d ; col: %d\n",lig,col);
 				// parcours des voitures dans cette case
 				for (unsigned short int j=0; j<monde->grille[lig*monde->nb_colonnes + col].nb_voitures; ++j) {
@@ -313,9 +313,9 @@ long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* IN
 
 		// parcours des cases de la grille dans lesquelles la voiture se trouve
 		for (unsigned int col=(monde->voitures[i].position.x+monde->voitures[i].min_x)*monde->nb_colonnes/monde->l;
-		col<(monde->voitures[i].position.x+monde->voitures[i].max_x)*monde->nb_colonnes/monde->l; ++col) {
+		col<(monde->voitures[i].position.x+monde->voitures[i].max_x)*monde->nb_colonnes/monde->l + 1; ++col) {
 			for (unsigned int lig=(monde->voitures[i].position.y+monde->voitures[i].min_y)*monde->nb_lignes/monde->h;
-			lig<(monde->voitures[i].position.y+monde->voitures[i].max_y)*monde->nb_lignes/monde->h; ++lig) {
+			lig<(monde->voitures[i].position.y+monde->voitures[i].max_y)*monde->nb_lignes/monde->h + 1; ++lig) {
 				// efface la voitures de cette case
 				monde->grille[lig*monde->nb_colonnes + col].nb_voitures--;
 				unsigned short int k;
@@ -331,9 +331,9 @@ long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* IN
 		monde->voitures[i].position.y += monde->voitures[i].deplacement_final.y;
 		// parcours des NOUVELLES CASES de la grille dans lesquelles la voiture se trouve
 		for (unsigned int col=(monde->voitures[i].position.x+monde->voitures[i].min_x)*monde->nb_colonnes/monde->l;
-		col<(monde->voitures[i].position.x+monde->voitures[i].max_x)*monde->nb_colonnes/monde->l; ++col) {
+		col<(monde->voitures[i].position.x+monde->voitures[i].max_x)*monde->nb_colonnes/monde->l + 1; ++col) {
 			for (unsigned int lig=(monde->voitures[i].position.y+monde->voitures[i].min_y)*monde->nb_lignes/monde->h;
-			lig<(monde->voitures[i].position.y+monde->voitures[i].max_y)*monde->nb_lignes/monde->h; ++lig) {
+			lig<(monde->voitures[i].position.y+monde->voitures[i].max_y)*monde->nb_lignes/monde->h + 1; ++lig) {
 				// ajout de la voiture dans cette case
 				monde->grille_voitures[(lig*monde->nb_colonnes + col)*monde->nb_voitures + monde->grille[lig*monde->nb_colonnes + col].nb_voitures] = i;
 				monde->grille[lig*monde->nb_colonnes + col].nb_voitures++;
