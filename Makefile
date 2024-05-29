@@ -40,5 +40,5 @@ run: main.out
 test: main_test.out
 	./main_test.out
 
-clean: main.out main_test.out
-	rm *.out
+clean: 
+	rm -rf *.out *.o *.dSYM
