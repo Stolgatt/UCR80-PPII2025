@@ -5,7 +5,7 @@
 
 // l'ensemble des textures à charger pour le jeu (n'incluant pas les menus)
 const char * const TEXTURE_FILES[] = {"assets/maps/mapferme.bmp","assets/maps/mapneon.bmp",
-									"assets/sprites/delorean.bmp",
+									"assets/sprites/Delorean-3Pos.bmp",
 									"assets/maps/minimapferme.bmp","assets/maps/minimapneon.bmp",
 									"assets/skyboxes/skybox_moomoo.bmp","assets/skyboxes/skybox_neon.bmp",
 									"assets/sprites/panneaux.bmp","assets/sprites/zoneinterdite.bmp"};
@@ -20,7 +20,7 @@ const char * const SON_FILES[] = {"assets/sounds/musique.wav","assets/sounds/mot
 static VECTEUR3D pos_ini_voit_ferme[] = {{2000.-210.,2510.,1.}};
 static float angles_ini_voit_ferme[] = {0.};
 static float rayons_ini_voit_ferme[] = {10.};
-static float echelles_ini_voit_ferme[] = {7.};
+static float echelles_ini_voit_ferme[] = {40.};
 static unsigned short int textures_voit_ferme[] = {2}; // delorean.bmp
 // sols
 static VECTEUR2D pos_ini_sol_ferme[] = {{2000.,2000.}};
@@ -84,7 +84,7 @@ NIVEAU lvl_ferme = {
 static VECTEUR3D pos_ini_voit_neon[] = {{1694.+2500.,186.+2500.,1.}};
 static float angles_ini_voit_neon[] = {0.};
 static float rayons_ini_voit_neon[] = {10.};
-static float echelles_ini_voit_neon[] = {7.};
+static float echelles_ini_voit_neon[] = {70.};
 static unsigned short int textures_voit_neon[] = {2}; // delorean.bmp
 // sols
 static VECTEUR2D pos_ini_sol_neon[] = {{2500.,2500.}};
