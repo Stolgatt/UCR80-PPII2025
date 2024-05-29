@@ -72,6 +72,14 @@ struct MONDE_PHYSIQUE {
 	// la partie graphique
 	CAMERA cam;
 	SCENE scene; 
+	unsigned short int* nbs_colonnes;
+	unsigned short int* nbs_lignes;
+	long long int* durees_frame;
+	unsigned short int* tableau_durees_animations;
+	unsigned short int** tableau_animations;
+	long long int* tableau_compteurs;
+	unsigned short int* tableau_frames;
+
 	TTF_Font* police;
 	SDL_Rect minimap_rect;
 	SDL_Point timer_position;
@@ -128,6 +136,12 @@ struct NIVEAU {
 	float* echelles_dec;
 	VECTEUR3D* positions_dec;
 	unsigned short int* texture_ids_dec;
+	// animation sprites
+	unsigned short int* nbs_colonnes;
+	unsigned short int* nbs_lignes;
+	long long int* durees_frame;
+	unsigned short int* tableau_durees_animations;
+	unsigned short int** tableau_animations;
 
 	// segments
 	unsigned short int nb_tableaux;
@@ -220,6 +234,14 @@ inline SEGMENT2D CREA_SEGMENT_2D(float x1, float x2, float y1, float y2) {
 	res.direction.y /= norme;
 	res.longueur = norme;
 	return res;
+}
+
+inline void choix_sprite(int n_colonnes, int n_lignes, int index, SDL_Texture* text, SDL_Rect* source) {
+    SDL_QueryTexture(text,NULL,NULL,&source->w,&source->h);
+    source->x = source->w*(index%n_colonnes);
+    source->y = source->h*(index/n_colonnes);
+    source->w /= n_colonnes;
+    source->h /= n_lignes;
 }
 
 void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const CONTEXTE_SDL* contexte);

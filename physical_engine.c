@@ -133,8 +133,8 @@ void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const C
 		ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].echelle = niveau->echelles_dec[i];
 		ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].position = niveau->positions_dec[i];
 		// TODO gestion animation/spritesheets
-		ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].source.x = ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].source.y = 0;
-		SDL_QueryTexture(contexte->tableau_textures[niveau->texture_ids_dec[i]],NULL,NULL,&ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].source.w,&ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].source.h);
+		choix_sprite(niveau->nbs_colonnes[i], niveau->nbs_lignes[i], niveau->tableau_animations[i][0],
+			ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].texture, &ptr_plan_prev->sprites_au_dessus->sprites[index_sprites].source);
 	}
 
 	// initialisation voitures
@@ -223,6 +223,16 @@ void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const C
 	tmp.x += tmp.w;
 	SDL_RenderCopy(monde->cam.renderer,contexte->tableau_textures[niveau->texture_id_skybox],NULL,&tmp);
 	SDL_SetRenderTarget(monde->cam.renderer,NULL); // l'un des bugs les plus vicieux qu'il m'ait été donné de voir
+
+	// initialisation animations sprites
+	monde->nbs_colonnes = niveau->nbs_colonnes;
+	monde->nbs_lignes = niveau->nbs_lignes;
+	monde->durees_frame = niveau->durees_frame;
+	monde->tableau_animations = niveau->tableau_animations;
+	monde->tableau_durees_animations = niveau->tableau_durees_animations;
+	monde->tableau_compteurs = malloc(sizeof(long long int)*niveau->nb_decors);
+	monde->tableau_frames = calloc(niveau->nb_decors,sizeof(unsigned short int));
+
 }
 
 void Decharger_Monde_Physique(MONDE_PHYSIQUE* monde) {
@@ -249,6 +259,8 @@ void Decharger_Monde_Physique(MONDE_PHYSIQUE* monde) {
 		ptr2 = tmp2;
 	}
 	SDL_DestroyTexture(monde->scene.skybox);
+	free(monde->tableau_compteurs);
+	free(monde->tableau_frames);
 
 }
 
@@ -258,6 +270,17 @@ long long int Calculer_Monde_Physique(MONDE_PHYSIQUE* monde, const short int* IN
 
 	// gestion timer
 	monde->timer += dt;
+
+	// gestion animations
+	for (unsigned int i=0; i<monde->scene.tout_en_haut->sprites_au_dessus->N - monde->nb_voitures; ++i) {
+		monde->tableau_compteurs[i] += dt;
+		if (monde->tableau_compteurs[i] >= monde->durees_frame[i]) {
+			monde->tableau_compteurs[i] %= monde->durees_frame[i];
+			monde->tableau_frames[i] = (monde->tableau_frames[i] + 1) % monde->tableau_durees_animations[i];
+			choix_sprite(monde->nbs_colonnes[i], monde->nbs_lignes[i], monde->tableau_animations[i][monde->tableau_frames[i]],
+				monde->scene.tout_en_haut->sprites_au_dessus->sprites[i].texture, &monde->scene.tout_en_haut->sprites_au_dessus->sprites[i].source);
+		}
+	}
 
 	float speed_coef = INPUT[UP] ? 2.0 : 0.0;
 	if (INPUT[LEFT])
