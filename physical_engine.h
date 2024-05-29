@@ -238,10 +238,10 @@ inline SEGMENT2D CREA_SEGMENT_2D(float x1, float x2, float y1, float y2) {
 
 inline void choix_sprite(int n_colonnes, int n_lignes, int index, SDL_Texture* text, SDL_Rect* source) {
     SDL_QueryTexture(text,NULL,NULL,&source->w,&source->h);
-    source->x = source->w*(index%n_colonnes);
-    source->y = source->h*(index/n_colonnes);
     source->w /= n_colonnes;
     source->h /= n_lignes;
+    source->x = source->w*(index%n_colonnes);
+    source->y = source->h*(index/n_colonnes);
 }
 
 void Charger_Monde_Physique(MONDE_PHYSIQUE* monde, const NIVEAU* niveau, const CONTEXTE_SDL* contexte);
