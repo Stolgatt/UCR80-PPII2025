@@ -190,13 +190,13 @@ int main() {
 
 
     //Ecran titre
-    /*for (int i = 0; i <= 250; i+=10){
+    for (int i = 0; i <= 250; i+=10){
         choix_page_menu(1, 0, &titre_source);
         SDL_SetTextureAlphaMod(titre, i);
         SDL_RenderCopy(renderer, titre, &titre_source, &menu_dest);
         SDL_RenderPresent(renderer);
         SDL_Delay(70);
-    }*/
+    }
 
     // Jouer la musique indéfiniment
     Mix_PlayChannel(0, SONS[0], -1);
@@ -289,7 +289,7 @@ int main() {
                         case ACCUEIL:
                             if EST_DANS_CLICKZONE(EVENT.button,clickZoneStart) {
                                 //Loading screen
-                                /*for (int i = 0; i <= 4; i++){
+                                for (int i = 0; i <= 4; i++){
                                     choix_page_menu(4, 0, &loading_source);
                                     SDL_RenderCopy(renderer, chargement, &loading_source, &menu_dest);
                                     SDL_RenderPresent(renderer);
@@ -309,7 +309,7 @@ int main() {
                                     SDL_RenderCopy(renderer, chargement, &loading_source, &menu_dest);
                                     SDL_RenderPresent(renderer);
                                     SDL_Delay(50);
-                                }*/
+                                }
                                 if (SELECTED == MAP2) Charger_Monde_Physique(&monde,&lvl_neon_city,&contexte);
                                 else Charger_Monde_Physique(&monde,&lvl_ferme,&contexte);
                                 MENU = JEU;
