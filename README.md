@@ -19,7 +19,6 @@ Alexis CHAVY
 
 Ultimate Car Racing 80 : retour vers le passé
 
-
 ## Présentation du jeu
 
 Dans Ultimate Car racing 80 retour vers le passé,
@@ -31,6 +30,9 @@ dans les jeux vidéo arcade des années 80.
 Vous avez accès à 2 circuits au style et à la structure complètement différents. Le véhicule qui vous est proposé est
 une DeLorean DMC-12 inspirée de celle des films Retour vers le Futur.
 
+## Illustration
+
+<img src="assets/git/illustration.png" width="800" alt="Screenshot du jeu montrant la voiture, une DeLorean, sur un circuit dans le style Prairie MeuhMeuh de Mario Kart">
 
 ## Installation
 
